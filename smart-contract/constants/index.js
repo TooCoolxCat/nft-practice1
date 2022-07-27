@@ -1,5 +1,5 @@
-import fashionlistAddresses from './fashionlist.json';
+//import fashionlistAddresses from './fashionlist.json';
 const METADATA_URL = "https://ipfs.io/ipfs/QmNU12GQ59rnZkdpkZHt7DoFFQv76rkGSPSYRLxWinSkaU/";
-const FASHIONLIST = fashionlistAddresses;
+//const FASHIONLIST = fashionlistAddresses;
 
-module.exports = { METADATA_URL, FASHIONLIST };
+module.exports = { METADATA_URL };
