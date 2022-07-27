@@ -19,7 +19,6 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     uint256 public maxSupply = 333; 
 
     bool public _paused = true;
-
     //Constructor takes in the baseURI to set _baseTokenURI for the collection.
     constructor(
     string memory baseURI
