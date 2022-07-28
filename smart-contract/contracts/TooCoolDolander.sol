@@ -9,21 +9,22 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     
     using Strings for uint256;
     
-     /**
-     * @dev _baseTokenURI for computing {tokenURI}. If set, the resulting URI for each
-     * token will be the concatenation of the `baseURI` and the `tokenId`.
-     */
     string _baseTokenURI;
+    string public notRevealedURI;
     uint256 public cost = 0.01 ether; 
     uint256 public tokenIds;
     uint256 public maxSupply = 333; 
 
-    bool public _paused = true;
+    bool public _paused = false;
+    bool public revealed = false;
+
     //Constructor takes in the baseURI to set _baseTokenURI for the collection.
     constructor(
-    string memory baseURI
+    string memory baseURI,
+    string memory initNotRevealedURI
       ) ERC721("TooCoolDolander", "TCD") {
     _baseTokenURI = baseURI;
+    notRevealedURI = initNotRevealedURI;
   }
 
 
@@ -52,40 +53,36 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
      return _baseTokenURI;
  }
 
+  function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
+    notRevealedURI = initNotRevealedURI;
+  }
   /**
   * @dev tokenURI overides the Openzeppelin's ERC721 implementation for tokenURI function
   * This function returns the URI from where we can extract the metadata for a given tokenId
   */
  function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
     require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-
+    if(revealed == false){
+      return notRevealedURI;
+    }
+    else{
     string memory baseURI = _baseURI();
-            // Here it checks if the length of the baseURI is greater than 0, if it is return the baseURI and attach
-            // the tokenId and `.json` to it so that it knows the location of the metadata json file for a given 
-            // tokenId stored on IPFS
-            // If baseURI is empty return an empty string
-   return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
+
+    return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
+
+    }
 }
 
-  // function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) {
-  //   require(_exists(_tokenId), 'ERC721Metadata: URI query for nonexistent token');
+  function reveal () public onlyOwner(){
+    revealed = true;
+  }
 
-  //   if (revealed == false) {
-  //     return hiddenMetadataUri;
-  //   }
-
-  //   string memory currentBaseURI = _baseURI();
-  //   return bytes(currentBaseURI).length > 0
-  //       ? string(abi.encodePacked(currentBaseURI, _tokenId.toString(), uriSuffix))
-  //       : '';
-  // }
-
-  function setPaused(bool _state) public onlyOwner {
+    function setPaused(bool _state) public onlyOwner {
     _paused = _state;
   }
 
 
-  function withdraw() public onlyOwner {
+  function withdraw() public payable onlyOwner {
 
     // (bool os, ) = payable(owner()).call{value: address(this).balance}('');
     // require(os);

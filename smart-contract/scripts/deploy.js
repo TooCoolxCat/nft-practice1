@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { METADATA_URL} = require("../constants");
+const { METADATA_URL,PREVIEW_URL} = require("../constants");
 
 async function main() {
 
@@ -7,11 +7,12 @@ async function main() {
 
    // URL from where we can extract the metadata for a Crypto Dev NFT
    const metadataURL = METADATA_URL;
-
+   const previewURL = PREVIEW_URL;
    const Contract = await ethers.getContractFactory("TooCoolDolander");
  
    const contract = await Contract.deploy(
-     metadataURL
+     metadataURL, previewURL
+    
    );
 
    await contract.deployed();
