@@ -123,6 +123,7 @@
 
           const _whitelistMintStarted = await nftContract.whitelistMintStarted();
           if (!_whitelistMintStarted){
+            console.log(_whitelistMintStarted);
             window.alert("Presale has not started yet");
           }      
         } catch (err) {
