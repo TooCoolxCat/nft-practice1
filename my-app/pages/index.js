@@ -121,10 +121,10 @@
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
-          const _whitelistMintStarted = await nftContract.whitelistMintStarted();
+          const whitelistMintStarted = await nftContract.whitelistMintStarted();
           //_whitelistMintedStarted = false then do the following
-          if (!_whitelistMintStarted){
-            console.log(_whitelistMintStarted);
+          if (!whitelistMintStarted){
+            console.log(whitelistMintStarted);
             window.alert("Presale has not started yet");
           }      
         } catch (err) {
@@ -138,9 +138,9 @@
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
-          const _whitelistMintEnded = await nftContract.whitelistMintEnded();
+          const whitelistMintEnded = await nftContract.whitelistMintEnded();
           //_whitelistMintedEnded = true then do the following
-          if (_whitelistMintEnded){
+          if (whitelistMintEnded){
             window.alert("Presale has ended");
           }      
         } catch (err) {
@@ -197,13 +197,13 @@
           connectWallet();
 
            // Check if presale has started and ended
-          const _whitelistMintStarted = checkIfPresaleStarted();
-          console.log( _whitelistMintStarted);
+          const whitelistMintStarted = checkIfPresaleStarted();
+          console.log(whitelistMintStarted);
           // if started = false, then check if it has ended
-          if (!_whitelistMintStarted) {
+          if (!whitelistMintStarted) {
             checkIfPresaleEnded();
           }
-          // else if (_whitelistMintStarted){
+          // else if (whitelistMintStarted){
           //   getOwner();
           // }
 
@@ -233,7 +233,7 @@
 
         // If connected user is not the owner but presale hasn't started yet, tell them that
         // if whitelistMintStarted = false
-        if (!_whitelistMintStarted) {
+        if (!whitelistMintStarted) {
           return (
             <div>
               <div className={styles.description}>Presale hasnt started!</div>
@@ -243,7 +243,7 @@
 
          // If presale started, but hasn't ended yet, allow for minting during the presale period
          // if started = true, ended = false, then presale mint
-        if (_whitelistMintStarted && !_whitelistMintEnded) {
+        if (whitelistMintStarted && !whitelistMintEnded) {
           return (
             <div>
               <div className={styles.description}>
@@ -258,7 +258,7 @@
 
         // If presale started and has ended, its time for public minting
         // if started = true ended =true , then public mint
-        if (_whitelistMintStarted && _whitelistMintEnded) {
+        if (whitelistMintStarted && whitelistMintEnded) {
           return (
             <button className={styles.button} onClick={publicMint}>
               Public Mint 🚀
