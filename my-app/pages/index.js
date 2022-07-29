@@ -13,8 +13,8 @@
       // loading is set to true when we are waiting for a transaction to get mined
       const [loading, setLoading] = useState(false);
       
-      const [whitelistMintStarted, setWhitelistMintStarted] = useState(false);
-      const [whitelistMintEnded, setWhitelistMintEnded] = useState(false);
+      const [contract_whitelistMintStarted, setWhitelistMintStarted] = useState(false);
+      const [contract_whitelistMintEnded, setWhitelistMintEnded] = useState(false);
 
       // tokenIdsMinted keeps track of the number of tokenIds that have been minted
       const [tokenIdsMinted, setTokenIdsMinted] = useState("0"); 
@@ -121,12 +121,13 @@
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
-          const whitelistMintStarted = await nftContract.whitelistMintStarted();
+          const contract_whitelistMintStarted = await nftContract.whitelistMintStarted();
           //_whitelistMintedStarted = false then do the following
-          if (!whitelistMintStarted){
-            console.log(whitelistMintStarted);
+          if (!contract_whitelistMintStarted){
+            console.log(contract_whitelistMintStarted);
             window.alert("Presale has not started yet");
-          }      
+          }   
+          return contract_whitelistMintStarted;   
         } catch (err) {
           console.error(err);
         }
@@ -138,11 +139,12 @@
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
-          const whitelistMintEnded = await nftContract.whitelistMintEnded();
+          const contract_whitelistMintEnded = await nftContract.whitelistMintEnded();
           //_whitelistMintedEnded = true then do the following
-          if (whitelistMintEnded){
+          if (contract_whitelistMintEnded){
             window.alert("Presale has ended");
-          }      
+          }
+          return contract_whitelistMintEnded; 
         } catch (err) {
           console.error(err);
         }
@@ -197,10 +199,10 @@
           connectWallet();
 
            // Check if presale has started and ended
-          const whitelistMintStarted = checkIfPresaleStarted();
-          console.log(whitelistMintStarted);
+          const contract_whitelistMintStarted = checkIfPresaleStarted();
+          console.log(contract_whitelistMintStarted);
           // if started = false, then check if it has ended
-          if (!whitelistMintStarted) {
+          if (!contract_whitelistMintStarted) {
             checkIfPresaleEnded();
           }
           // else if (whitelistMintStarted){
@@ -233,7 +235,7 @@
 
         // If connected user is not the owner but presale hasn't started yet, tell them that
         // if whitelistMintStarted = false
-        if (!whitelistMintStarted) {
+        if (!contract_whitelistMintStarted) {
           return (
             <div>
               <div className={styles.description}>Presale hasnt started!</div>
@@ -243,7 +245,7 @@
 
          // If presale started, but hasn't ended yet, allow for minting during the presale period
          // if started = true, ended = false, then presale mint
-        if (whitelistMintStarted && !whitelistMintEnded) {
+        if (contract_whitelistMintStarted && !contract_whitelistMintEnded) {
           return (
             <div>
               <div className={styles.description}>
@@ -258,7 +260,7 @@
 
         // If presale started and has ended, its time for public minting
         // if started = true ended =true , then public mint
-        if (whitelistMintStarted && whitelistMintEnded) {
+        if (contract_whitelistMintStarted && contract_whitelistMintEnded) {
           return (
             <button className={styles.button} onClick={publicMint}>
               Public Mint 🚀
