@@ -12,8 +12,10 @@
       const [address, setAddress] = useState("0");
       // loading is set to true when we are waiting for a transaction to get mined
       const [loading, setLoading] = useState(false);
-      // checks if the currently connected MetaMask wallet is the owner of the contract
-      const [isOwner, setIsOwner] = useState(false);
+      
+      const [whitelistMintStarted, setWhitelistMintStarted] = useState(false);
+      const [whitelistMintEnded, setWhitelistMintEnded] = useState(false);
+
       // tokenIdsMinted keeps track of the number of tokenIds that have been minted
       const [tokenIdsMinted, setTokenIdsMinted] = useState("0"); 
       // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
@@ -143,27 +145,6 @@
         }
       };
 
-      const getOwner = async () => {
-        try {
-          // Get the provider from web3Modal, which in our case is MetaMask
-          // No need for the Signer here, as we are only reading state from the blockchain
-          const provider = await getProviderOrSigner();
-          // We connect to the Contract using a Provider, so we will only
-          // have read-only access to the Contract
-          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-          // call the owner function from the contract
-          const _owner = await nftContract.owner();
-          // We will get the signer now to extract the address of the currently connected MetaMask account
-          const signer = await getProviderOrSigner(true);
-          // Get the address associated to the signer which is connected to  MetaMask
-          const address = await signer.getAddress();
-          if (address.toLowerCase() === _owner.toLowerCase()) {
-            setIsOwner(true);
-          }
-        } catch (err) {
-          console.error(err.message);
-        }
-      };
       /**
        * Returns a Provider or Signer object representing the Ethereum RPC with or without the
        * signing capabilities of metamask attached
@@ -213,12 +194,12 @@
           connectWallet();
 
            // Check if presale has started and ended
-          const _presaleStarted = checkIfPresaleStarted();
-          if (_presaleStarted) {
+          const _whitelistMintStarted = checkIfPresaleStarted();
+          if (_whitelistMintStarted) {
             checkIfPresaleEnded();
           }
           else if (!_presaleStarted){
-            await getOwner();
+            getOwner();
           }
 
           getTokenIdsMinted();
@@ -246,7 +227,7 @@
         }
 
         // If connected user is not the owner but presale hasn't started yet, tell them that
-        if (!owner && !presaleStarted) {
+        if (!whitelistMintStarted) {
           return (
             <div>
               <div className={styles.description}>Presale hasnt started!</div>
@@ -255,7 +236,7 @@
         }
 
          // If presale started, but hasn't ended yet, allow for minting during the presale period
-        if (presaleStarted && !presaleEnded) {
+        if (whitelistMintStarted && !whitelistMintEnded) {
           return (
             <div>
               <div className={styles.description}>
@@ -269,7 +250,7 @@
         }
 
         // If presale started and has ended, its time for public minting
-        if (presaleStarted && presaleEnded) {
+        if (whitelistMintStarted && whitelistMintEnded) {
           return (
             <button className={styles.button} onClick={publicMint}>
               Public Mint 🚀
