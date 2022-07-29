@@ -122,6 +122,7 @@
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
           const _whitelistMintStarted = await nftContract.whitelistMintStarted();
+          //_whitelistMintedStarted = false then do the following
           if (!_whitelistMintStarted){
             console.log(_whitelistMintStarted);
             window.alert("Presale has not started yet");
@@ -138,6 +139,7 @@
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
           const _whitelistMintEnded = await nftContract.whitelistMintEnded();
+          //_whitelistMintedEnded = true then do the following
           if (_whitelistMintEnded){
             window.alert("Presale has ended");
           }      
@@ -196,10 +198,11 @@
 
            // Check if presale has started and ended
           const _whitelistMintStarted = checkIfPresaleStarted();
-          if (_whitelistMintStarted) {
+          // if started = false, then check if it has ended
+          if (!_whitelistMintStarted) {
             checkIfPresaleEnded();
           }
-          else if (!_presaleStarted){
+          else if (_whitelistMintStarted){
             getOwner();
           }
 
@@ -228,6 +231,7 @@
         }
 
         // If connected user is not the owner but presale hasn't started yet, tell them that
+        // if whitelistMintStarted = false
         if (!whitelistMintStarted) {
           return (
             <div>
@@ -237,6 +241,7 @@
         }
 
          // If presale started, but hasn't ended yet, allow for minting during the presale period
+         // if started = true, ended = false, then presale mint
         if (whitelistMintStarted && !whitelistMintEnded) {
           return (
             <div>
@@ -251,6 +256,7 @@
         }
 
         // If presale started and has ended, its time for public minting
+        // if started = true ended =true , then public mint
         if (whitelistMintStarted && whitelistMintEnded) {
           return (
             <button className={styles.button} onClick={publicMint}>
