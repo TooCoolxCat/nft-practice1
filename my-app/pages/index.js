@@ -137,7 +137,7 @@
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
           const _whitelistMintEnded = await nftContract.whitelistMintEnded();
-          if (!_whitelistMintEnded){
+          if (_whitelistMintEnded){
             window.alert("Presale has ended");
           }      
         } catch (err) {
