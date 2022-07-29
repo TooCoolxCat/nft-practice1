@@ -198,6 +198,7 @@
 
            // Check if presale has started and ended
           const _whitelistMintStarted = checkIfPresaleStarted();
+          console.log( _whitelistMintStarted);
           // if started = false, then check if it has ended
           if (!_whitelistMintStarted) {
             checkIfPresaleEnded();
@@ -232,7 +233,7 @@
 
         // If connected user is not the owner but presale hasn't started yet, tell them that
         // if whitelistMintStarted = false
-        if (!whitelistMintStarted) {
+        if (!_whitelistMintStarted) {
           return (
             <div>
               <div className={styles.description}>Presale hasnt started!</div>
@@ -242,7 +243,7 @@
 
          // If presale started, but hasn't ended yet, allow for minting during the presale period
          // if started = true, ended = false, then presale mint
-        if (whitelistMintStarted && !whitelistMintEnded) {
+        if (_whitelistMintStarted && !_whitelistMintEnded) {
           return (
             <div>
               <div className={styles.description}>
@@ -257,7 +258,7 @@
 
         // If presale started and has ended, its time for public minting
         // if started = true ended =true , then public mint
-        if (whitelistMintStarted && whitelistMintEnded) {
+        if (_whitelistMintStarted && _whitelistMintEnded) {
           return (
             <button className={styles.button} onClick={publicMint}>
               Public Mint 🚀
