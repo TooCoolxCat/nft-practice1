@@ -1,4 +1,4 @@
-import { Contract, providers, utils } from "ethers";
+    import { Contract, providers, utils } from "ethers";
     import Head from "next/head";
     import React, { useEffect, useRef, useState } from "react";
     import Web3Modal from "web3modal";
@@ -8,13 +8,48 @@ import { Contract, providers, utils } from "ethers";
     export default function Home() {
       // walletConnected keep track of whether the user's wallet is connected or not
       const [walletConnected, setWalletConnected] = useState(false);
+      // get wallet address
+      const [address, setAddress] = useState("0");
       // loading is set to true when we are waiting for a transaction to get mined
       const [loading, setLoading] = useState(false);
+      // checks if the currently connected MetaMask wallet is the owner of the contract
+      const [isOwner, setIsOwner] = useState(false);
       // tokenIdsMinted keeps track of the number of tokenIds that have been minted
-      const [tokenIdsMinted, setTokenIdsMinted] = useState("0");
+      const [tokenIdsMinted, setTokenIdsMinted] = useState("0"); 
       // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
       const web3ModalRef = useRef();
 
+      /**
+       * presaleMint: FashionList Mint an NFT 
+       */
+
+      const presaleMint = async () => {
+        try {
+          console.log("Presale mint");
+          const signer = await getProviderOrSigner(true);
+          // Get the address associated to the signer which is connected to  MetaMask
+          const address = await signer.getAddress();
+          const merkleProof = merkleTree.getHexProof(address);
+
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+          const tx = await nftContract.whitelistMint(merkleProof)(   
+            {
+            // value signifies the cost of one LW3Punks which is "0.01" eth.
+            // We are parsing `0.01` string to ether using the utils library from ethers.js
+            value: utils.parseEther("0.00"),    
+          }
+          );
+
+          setLoading(true);
+          // wait for the transaction to get mined
+          await tx.wait();
+          setLoading(false);
+          window.alert("You successfully minted a TooCool Dolander!");
+        }
+        catch (err) {
+          console.error(err);
+        }
+      };
       /**
        * publicMint: Mint an NFT
        */
@@ -51,11 +86,12 @@ import { Contract, providers, utils } from "ethers";
           // When used for the first time, it prompts the user to connect their wallet
           await getProviderOrSigner();
           setWalletConnected(true);
+         
         } catch (err) {
           console.error(err);
         }
       };
-
+  
       /**
        * getTokenIdsMinted: gets the number of tokenIds that have been minted
        */
@@ -77,6 +113,57 @@ import { Contract, providers, utils } from "ethers";
         }
       };
 
+      const checkIfPresaleStarted = async () => {
+        try {
+          const provider = await getProviderOrSigner();
+
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+
+          const _whitelistMintStarted = await nftContract.whitelistMintStarted();
+          if (!_whitelistMintStarted){
+            window.alert("Presale has not started yet");
+          }      
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const checkIfPresaleEnded = async () => {
+        try {
+          const provider = await getProviderOrSigner();
+
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+
+          const _whitelistMintEnded = await nftContract.whitelistMintEnded();
+          if (!_whitelistMintEnded){
+            window.alert("Presale has ended");
+          }      
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const getOwner = async () => {
+        try {
+          // Get the provider from web3Modal, which in our case is MetaMask
+          // No need for the Signer here, as we are only reading state from the blockchain
+          const provider = await getProviderOrSigner();
+          // We connect to the Contract using a Provider, so we will only
+          // have read-only access to the Contract
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+          // call the owner function from the contract
+          const _owner = await nftContract.owner();
+          // We will get the signer now to extract the address of the currently connected MetaMask account
+          const signer = await getProviderOrSigner(true);
+          // Get the address associated to the signer which is connected to  MetaMask
+          const address = await signer.getAddress();
+          if (address.toLowerCase() === _owner.toLowerCase()) {
+            setIsOwner(true);
+          }
+        } catch (err) {
+          console.error(err.message);
+        }
+      };
       /**
        * Returns a Provider or Signer object representing the Ethereum RPC with or without the
        * signing capabilities of metamask attached
@@ -125,8 +212,19 @@ import { Contract, providers, utils } from "ethers";
 
           connectWallet();
 
+           // Check if presale has started and ended
+          const _presaleStarted = checkIfPresaleStarted();
+          if (_presaleStarted) {
+            checkIfPresaleEnded();
+          }
+          else if (!_presaleStarted){
+            await getOwner();
+          }
+
           getTokenIdsMinted();
 
+
+          //end of merkle tree
           // set an interval to get the number of token Ids minted every 5 seconds
           setInterval(async function () {
             await getTokenIdsMinted();
@@ -147,14 +245,47 @@ import { Contract, providers, utils } from "ethers";
           );
         }
 
+        // If connected user is not the owner but presale hasn't started yet, tell them that
+        if (!owner && !presaleStarted) {
+          return (
+            <div>
+              <div className={styles.description}>Presale hasnt started!</div>
+            </div>
+          );
+        }
+
+         // If presale started, but hasn't ended yet, allow for minting during the presale period
+        if (presaleStarted && !presaleEnded) {
+          return (
+            <div>
+              <div className={styles.description}>
+                Presale has started!!! If your address is whitelisted, Mint a TooCool Dolander 🥳
+              </div>
+              <button className={styles.button} onClick={presaleMint}>
+                Presale Mint 🚀
+              </button>
+            </div>
+          );
+        }
+
+        // If presale started and has ended, its time for public minting
+        if (presaleStarted && presaleEnded) {
+          return (
+            <button className={styles.button} onClick={publicMint}>
+              Public Mint 🚀
+            </button>
+          );
+        }
+
         // If we are currently waiting for something, return a loading button
         if (loading) {
           return <button className={styles.button}>Loading...</button>;
         }
+        
 
         return (
           <button className={styles.button} onClick={publicMint}>
-            Public Mint 🚀
+            Wanna be TooCool? 
           </button>
         );
       };

@@ -41,25 +41,33 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
             _;
         }
 
-  function whitelistMint(bytes32[] calldata _merkleProof) public payable {
+    modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 root){
+      require(
+        MerkleProof.verify(
+          merkleProof,
+          root,
+          keccak256(abi.encodePacked(msg.sender))
+        ),
+        "Address does not exist in list"
+      );
+      _;
+    }
 
-    require(whitelistMintStarted, 'The whitelist sale is not enabled!');
-    require(!whitelistClaimed[msg.sender],'Address already claimed');
-
-    //create a leaf node
-    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-
-    //check if the verification is correct or not
-    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), 'Invalid proof!');
-
-    //update the whitelist to be ture
-    whitelistClaimed[msg.sender] = true;
-    tokenIds += 1;
-    _safeMint(msg.sender, 1);
+  function whitelistMint(bytes32[] calldata merkleProof) 
+    public 
+    payable 
+    onlyWhenNotPaused
+    isValidMerkleProof(merkleProof, merkleRoot) {
+        require(tokenIds < maxSupply, "Exceed maximum supply");
+        require(msg.value >= cost, "Ether sent is not correct");
+        //update the whitelist to be ture
+        whitelistClaimed[msg.sender] = true;
+        tokenIds += 1;
+        _safeMint(msg.sender, 1);
   }
 
-    function mint() public payable onlyWhenNotPaused {
-            require(tokenIds < maxSupply, "Exceed maximum LW3Punks supply");
+  function mint() public payable onlyWhenNotPaused {
+            require(tokenIds < maxSupply, "Exceed maximum supply");
             require(msg.value >= cost, "Ether sent is not correct");
             require(whitelistMintEnded, 'The whitelist sale has ended!');
 
@@ -67,26 +75,10 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
             _safeMint(msg.sender, tokenIds);
     }
   
-  function mintForAddress(uint256 _mintAmount, address _receiver) public onlyOwner {
-    tokenIds += _mintAmount;
-    _safeMint(_receiver, _mintAmount);
-  }
-
-  /**
-  * @dev _baseURI overides the Openzeppelin's ERC721 implementation which by default
-  * returned an empty string for the baseURI
-  */
   function _baseURI() internal view virtual override returns (string memory) {
      return _baseTokenURI;
  }
 
-  function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
-    notRevealedURI = initNotRevealedURI;
-  }
-  /**
-  * @dev tokenURI overides the Openzeppelin's ERC721 implementation for tokenURI function
-  * This function returns the URI from where we can extract the metadata for a given tokenId
-  */
  function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
     require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
     if(revealed == false){
@@ -102,6 +94,10 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
 
 /////onlyOwner////
 
+  function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
+    notRevealedURI = initNotRevealedURI;
+  }
+ 
     function setPaused(bool _state) public onlyOwner {
     _paused = _state;
   }
@@ -119,6 +115,12 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
   function reveal () public onlyOwner(){
     revealed = true;
   }
+
+    function mintForAddress(uint256 _mintAmount, address _receiver) public onlyOwner {
+    tokenIds += _mintAmount;
+    _safeMint(_receiver, _mintAmount);
+  }
+
 
   function withdraw() public payable onlyOwner {
 
