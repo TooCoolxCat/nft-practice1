@@ -202,9 +202,9 @@
           if (!_whitelistMintStarted) {
             checkIfPresaleEnded();
           }
-          else if (_whitelistMintStarted){
-            getOwner();
-          }
+          // else if (_whitelistMintStarted){
+          //   getOwner();
+          // }
 
           getTokenIdsMinted();
 
