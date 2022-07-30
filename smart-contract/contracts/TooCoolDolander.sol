@@ -41,28 +41,38 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
             _;
         }
 
-    modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 root){
-      require(
-        MerkleProof.verify(
-          merkleProof,
-          root,
-          keccak256(abi.encodePacked(msg.sender))
-        ),
-        "Address does not exist in list"
-      );
-      _;
-    }
+    // modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 root){
+    //   require(
+    //     MerkleProof.verify(
+    //       merkleProof,
+    //       root,
+    //       keccak256(abi.encodePacked(msg.sender))
+    //     ),
+    //     "Address does not exist in list"
+    //   );
+    //   _;
+    // }
 
-  function whitelistMint(bytes32[] calldata merkleProof) 
+  function whitelistMint(bool isValid) 
     public 
     payable 
-    onlyWhenNotPaused
-    isValidMerkleProof(merkleProof, merkleRoot) {
-        require(tokenIds < maxSupply, "Exceed maximum supply");
+    onlyWhenNotPaused{
+      // require(
+      //   MerkleProof.verify(
+      //     merkleProof,
+      //     root,
+      //     keccak256(abi.encodePacked(msg.sender))
+      //   ),
+      //   "Address does not exist in list"
+      // );
+        require(tokenIds < maxSupply, "Exceed  supply");
         require(msg.value >= cost, "Ether sent is not correct");
+    
+        require(isValid, 'Invalid proof!');
         //update the whitelist to be ture
         whitelistClaimed[msg.sender] = true;
         tokenIds += 1;
+        
         _safeMint(msg.sender, 1);
   }
 

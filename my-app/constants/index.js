@@ -1,4 +1,4 @@
-export const NFT_CONTRACT_ADDRESS = "0xFcBF0b82c3667368a4ae464aa2C69Fe247F26233";
+export const NFT_CONTRACT_ADDRESS = "0xbd55855d86Ffe6da9579A1baAc381e99c6Aa8a0B";
 
 export const abi =[
   {
@@ -669,9 +669,9 @@ export const abi =[
   {
     "inputs": [
       {
-        "internalType": "bytes32[]",
-        "name": "merkleProof",
-        "type": "bytes32[]"
+        "internalType": "bool",
+        "name": "isValid",
+        "type": "bool"
       }
     ],
     "name": "whitelistMint",
