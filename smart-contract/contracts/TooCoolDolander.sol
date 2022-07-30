@@ -22,6 +22,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     uint256 public maxSupply = 333; 
 
     bool public _paused = false;
+    bool public isValid = false;
     bool public whitelistMintStarted = false;
     bool public whitelistMintEnded = false;
     bool public revealed = false;
@@ -53,7 +54,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     //   _;
     // }
 
-  function whitelistMint(bool isValid) 
+  function whitelistMint (bool _isValid) 
     public 
     payable 
     onlyWhenNotPaused{
@@ -67,12 +68,12 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
       // );
         require(tokenIds < maxSupply, "Exceed  supply");
         require(msg.value >= cost, "Ether sent is not correct");
-    
+        isValid = _isValid;
         require(isValid, 'Invalid proof!');
         //update the whitelist to be ture
         whitelistClaimed[msg.sender] = true;
         tokenIds += 1;
-        
+
         _safeMint(msg.sender, 1);
   }
 

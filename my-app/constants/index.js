@@ -1,6 +1,6 @@
-export const NFT_CONTRACT_ADDRESS = "0xbd55855d86Ffe6da9579A1baAc381e99c6Aa8a0B";
+export const NFT_CONTRACT_ADDRESS = "0xA7ed489BA332362CeD95105834Ba8B2809f740C5";
 
-export const abi =[
+export const abi = [
   {
     "inputs": [
       {
@@ -211,6 +211,19 @@ export const abi =[
       }
     ],
     "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isValid",
     "outputs": [
       {
         "internalType": "bool",
@@ -670,7 +683,7 @@ export const abi =[
     "inputs": [
       {
         "internalType": "bool",
-        "name": "isValid",
+        "name": "_isValid",
         "type": "bool"
       }
     ],
