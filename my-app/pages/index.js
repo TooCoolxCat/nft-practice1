@@ -28,11 +28,32 @@
       const [merkleTree, setMerkleTree] = useState(null);
       const [rootHash, setrootHash] = useState(null);
       const [merkleProof, setmerkleProof] = useState("");
+
       const [isValid, setisValid] = useState(false);
+      const [isClaimed, setisClaimed] = useState(false);
+
       /**
        * presaleMint: FashionList Mint an NFT 
        */
 
+      const checkifClaimed = async () => {
+        try {
+         const signer = await getProviderOrSigner(true);
+         const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+         const signerAddress = await signer.getAddress();
+
+      // call the whitelistedAddresses from the contract
+        const isClaimed= await nftContract.whitelistClaimed(signerAddress);
+        console.log("is this address claimed?", isClaimed);
+
+        if(isClaimed){
+          setisClaimed(isClaimed);
+        }
+
+    } catch (err) {
+      console.error(err);
+    }
+      };
       const checkifValid = async () => {
         try {
   
@@ -42,30 +63,30 @@
           // Get the address associated to the signer which is connected to  MetaMask
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
-          //0xf627d6740e3021266f359836d2bbd4c599c8e17cc9901bdf018febd145ede891
+
           //get address
           const signerAddress = await signer.getAddress();
-          console.log("providerAddress:", signerAddress, typeof signerAddress);
+          //console.log("providerAddress:", signerAddress, typeof signerAddress);
 
           //get claimingAddress object
           const claimingAddress= keccak256(signerAddress);
-          console.log("claimingAddress", claimingAddress, typeof claimingAddress);
+          //console.log("claimingAddress", claimingAddress, typeof claimingAddress);
           
-          //get hash proof
+          //get merkle proof for the claiming address
           const merkleProof =  merkleTree.getHexProof(claimingAddress);
-          console.log("merkleProof:",merkleProof, typeof merkleProof);
+          //console.log("merkleProof:",merkleProof, typeof merkleProof);
           
-          //Edit format
-           //const proofAddress = merkleProof.toString().replaceAll('\'', '').replaceAll(' ', '');
-           const proofAddress = merkleProof.toString().replaceAll(/\'/g, "\"");
-           console.log("ProofAddress:",  proofAddress, typeof proofAddress);
-
-           console.log("merkleTree:",merkleTree);
+          //Edit format 
+          //const proofAddress = merkleProof.toString().replaceAll('\'', '').replaceAll(' ', '');
+          // console.log("ProofAddress:",  proofAddress, typeof proofAddress);
 
            const isValid = merkleTree.verify(merkleProof, claimingAddress, rootHash);
-           setisValid(true);
-           console.log(isValid);
 
+           //check if the address is valid
+           setisValid(true);
+           console.log("is this address valid?", isValid);
+
+           //if valid, allow the address to presaleMint
            if(isValid){
             presaleMint();
            }
@@ -86,21 +107,19 @@
           const signer = await getProviderOrSigner(true);
 
           // Create a new instance of the Contract with a Signer, which allows
-          // update methods
-          console.log("signed in ");
 
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
 
-          console.log("Got  Contract");
-          // call the mint from the contract to mint the LW3Punks
+          // call the presale from the contract and pass true to it
           const tx = await nftContract.whitelistMint(true,{
             value: utils.parseEther("0.001"),
           });
-          console.log("mint");
+
           setLoading(true);
           // wait for the transaction to get mined
           await tx.wait();
           setLoading(false);
+
           window.alert("You successfully minted a TooCool Dolander!");
         } catch (err) {
           console.error(err);
@@ -274,11 +293,17 @@
           // // }
 
           getTokenIdsMinted();
-          //check if whitelisted
+          
+          //check if is a valid address
           checkifValid();
-  
+          //console.log("checking if valid",isValid);
 
-          //end of merkle tree
+           if(isClaimed){
+            //check if claimed 
+            checkifClaimed();
+            //console.log("checking if claimed",isClaimed);
+          }
+  
           // set an interval to get the number of token Ids minted every 5 seconds
           setInterval(async function () {
             await getTokenIdsMinted();
@@ -296,6 +321,19 @@
             <button onClick={connectWallet} className={styles.button}>
               Connect your wallet
             </button>
+          );
+        }
+
+        if (!isClaimed) {
+          return (
+             <div>
+               <div className={styles.description}>
+                 HEY! You are one of TooCool now! 🥳
+               </div>
+               <button className={styles.button}>
+                 View your nft
+               </button>
+             </div>
           );
         }
 
