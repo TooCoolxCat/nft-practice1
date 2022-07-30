@@ -78,9 +78,9 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
   }
 
   function mint() public payable onlyWhenNotPaused {
-            require(tokenIds < maxSupply, "Exceed maximum supply");
-            require(msg.value >= cost, "Ether sent is not correct");
-            require(whitelistMintEnded, 'The whitelist sale has ended!');
+            // require(tokenIds < maxSupply, "Exceed maximum supply");
+            // require(msg.value >= cost, "Ether sent is not correct");
+            // require(whitelistMintEnded, 'The whitelist sale has ended!');
 
             tokenIds += 1;
             _safeMint(msg.sender, tokenIds);

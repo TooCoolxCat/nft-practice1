@@ -33,10 +33,11 @@
        * presaleMint: FashionList Mint an NFT 
        */
 
-      const presaleMint = async () => {
+      const checkifValid = async () => {
         try {
   
-          console.log("Presale mint");
+          console.log("Check if valid")
+
           const signer = await getProviderOrSigner(true);
           // Get the address associated to the signer which is connected to  MetaMask
 
@@ -44,7 +45,7 @@
           //0xf627d6740e3021266f359836d2bbd4c599c8e17cc9901bdf018febd145ede891
           //get address
           const signerAddress = await signer.getAddress();
-          console.log("signerAddress:", signerAddress, typeof signerAddress);
+          console.log("providerAddress:", signerAddress, typeof signerAddress);
 
           //get claimingAddress object
           const claimingAddress= keccak256(signerAddress);
@@ -58,50 +59,44 @@
            //const proofAddress = merkleProof.toString().replaceAll('\'', '').replaceAll(' ', '');
            const proofAddress = merkleProof.toString().replaceAll(/\'/g, "\"");
            console.log("ProofAddress:",  proofAddress, typeof proofAddress);
+
+           console.log("merkleTree:",merkleTree);
+
            const isValid = merkleTree.verify(merkleProof, claimingAddress, rootHash);
-           setisValid(isValid);
+           setisValid(true);
            console.log(isValid);
-          
-           if (isValid){
-            const tx = await nftContract.whitelistMint(isValid)(   
-              {
-              // value signifies the cost of one LW3Punks which is "0.01" eth.
-              // We are parsing `0.01` string to ether using the utils library from ethers.js
-              value: utils.parseEther("0.00"),    
-            });
+
+           if(isValid){
+            presaleMint();
            }
            else{
-            window.alert("You are not on the Fashion List!");
+            window.alert("Oppssss..Bummer..You are not on the Fashion List!");
            }
-
-
-          setLoading(true);
-          // wait for the transaction to get mined
-          await tx.wait();
-          setLoading(false);
-          window.alert("You successfully minted a TooCool Dolander!");
         }
         catch (err) {
           console.error(err);
         }
       };
-      /**
-       * publicMint: Mint an NFT
-       */
-      const publicMint = async () => {
+
+
+      const presaleMint = async () => {
         try {
-          console.log("Public mint");
+          console.log("Presale mint");
           // We need a Signer here since this is a 'write' transaction.
           const signer = await getProviderOrSigner(true);
+
           // Create a new instance of the Contract with a Signer, which allows
           // update methods
+          console.log("signed in ");
+
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+
+          console.log("Got  Contract");
           // call the mint from the contract to mint the LW3Punks
-          const tx = await nftContract.whitelistMint({
-            // value signifies the cost of one LW3Punks which is "0.01" eth.
-            // We are parsing `0.01` string to ether using the utils library from ethers.js
-            value: utils.parseEther("0.01"),
+          const tx = await nftContract.whitelistMint(true,{
+            value: utils.parseEther("0.001"),
           });
+          console.log("mint");
           setLoading(true);
           // wait for the transaction to get mined
           await tx.wait();
@@ -111,6 +106,33 @@
           console.error(err);
         }
       };
+
+      /**
+       * publicMint: Mint an NFT
+       */
+      // const publicMint = async () => {
+      //   try {
+      //     console.log("Public mint");
+      //     // We need a Signer here since this is a 'write' transaction.
+      //     const signer = await getProviderOrSigner(true);
+      //     // Create a new instance of the Contract with a Signer, which allows
+      //     // update methods
+      //     const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+      //     // call the mint from the contract to mint the LW3Punks
+      //     const tx = await nftContract.mint({
+      //       // value signifies the cost of one LW3Punks which is "0.01" eth.
+      //       // We are parsing `0.01` string to ether using the utils library from ethers.js
+      //       value: utils.parseEther("0.01"),
+      //     });
+      //     setLoading(true);
+      //     // wait for the transaction to get mined
+      //     await tx.wait();
+      //     setLoading(false);
+      //     window.alert("You successfully minted a TooCool Dolander!");
+      //   } catch (err) {
+      //     console.error(err);
+      //   }
+      // };
 
       /*
         connectWallet: Connects the MetaMask wallet
@@ -230,13 +252,15 @@
           });
 
           connectWallet();
+
+          //build a tree
           const leafNodes = addressList.map(addr => keccak256(addr))
           const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true});
           setMerkleTree(merkleTree);
+
+          //get the tree root
           const rootHash = '0x' + merkleTree.getRoot().toString('hex');
           setrootHash(rootHash);
-           console.log("merkleTree:",merkleTree);
-           console.log("rootHash:",rootHash);
           
           //  // Check if presale has started and ended
           // const contract_whitelistMintStarted = checkIfPresaleStarted();
@@ -250,7 +274,9 @@
           // // }
 
           getTokenIdsMinted();
-
+          //check if whitelisted
+          checkifValid();
+  
 
           //end of merkle tree
           // set an interval to get the number of token Ids minted every 5 seconds
@@ -319,7 +345,7 @@
                 <div className={styles.description}>
                    Presale has started!!! If your address is whitelisted, Mint a TooCool Dolander 🥳
                  </div>
-                 <button className={styles.button} onClick={presaleMint}>
+                 <button className={styles.button} onClick={checkifValid}>
                    Presale Mint 🚀
                  </button>
          </div>
