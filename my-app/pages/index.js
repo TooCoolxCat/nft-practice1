@@ -16,13 +16,17 @@
       // loading is set to true when we are waiting for a transaction to get mined
       const [loading, setLoading] = useState(false);
       
-      // const [contract_whitelistMintStarted, setWhitelistMintStarted] = useState(false);
+      // const [_whitelistMintStarted, setWhitelistMintStarted] = useState(false);
       // const [contract_whitelistMintEnded, setWhitelistMintEnded] = useState(false);
 
       // tokenIdsMinted keeps track of the number of tokenIds that have been minted
       const [tokenIdsMinted, setTokenIdsMinted] = useState("0"); 
       // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
       const web3ModalRef = useRef();
+
+      const [presaleStarted, setPresaleStarted] = useState(false);
+      // presaleEnded keeps track of whether the presale ended
+      const [presaleEnded, setPresaleEnded] = useState(false);
 
       //////
       const [merkleTree, setMerkleTree] = useState(null);
@@ -32,32 +36,73 @@
       const [isValid, setisValid] = useState(false);
       const [isClaimed, setisClaimed] = useState(false);
 
-      /**
-       * presaleMint: FashionList Mint an NFT 
-       */
 
+      const checkIfPresaleStarted = async () => {
+        try {
+          const provider = await getProviderOrSigner();
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+          const presaleStarted = await nftContract.whitelistMintStarted();
+          console.log("Has Presale started? --", presaleStarted);
+          //_whitelistMintedStarted = false then do the following
+          if (!presaleStarted){
+            console.log("...", presaleStarted);
+          }   
+          setPresaleStarted(presaleStarted);
+          return presaleStarted;   
+
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const checkIfPresaleEnded = async () => {
+        try {
+          const provider = await getProviderOrSigner();
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+          const presaleEnded = await nftContract.whitelistMintEnded();
+          console.log("Has Presale ended? --", presaleEnded);
+          //presaleEnded = true then do the following
+          if (presaleEnded){
+            console.log("Public Sale Started");
+          }
+          setPresaleEnded(presaleEnded);
+          return presaleEnded; 
+
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      /**
+       * checkifClaimed: Check if the address has claimed an NFT 
+       */
       const checkifClaimed = async () => {
         try {
          const signer = await getProviderOrSigner(true);
          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
          const signerAddress = await signer.getAddress();
 
-      // call the whitelistedAddresses from the contract
+        // call the whitelistedAddresses from the contract
         const isClaimed= await nftContract.whitelistClaimed(signerAddress);
-        console.log("is this address claimed?", isClaimed);
-
-        if(isClaimed){
-          setisClaimed(isClaimed);
-        }
+        console.log("Has the HUMAN claimed a TCD? --", isClaimed);
+        
+        //check if the HUMAN has claimed a TCD
+  
+        setisClaimed(isClaimed);
+        return isClaimed; 
 
     } catch (err) {
       console.error(err);
     }
       };
+
+       /**
+       * checkifValid: Check if the address is valid for presale
+       */
       const checkifValid = async () => {
         try {
   
-          console.log("Check if valid")
+          console.log("Checking... Who is this human?")
 
           const signer = await getProviderOrSigner(true);
           // Get the address associated to the signer which is connected to  MetaMask
@@ -67,6 +112,15 @@
           //get address
           const signerAddress = await signer.getAddress();
           //console.log("providerAddress:", signerAddress, typeof signerAddress);
+
+            //build a tree
+            const leafNodes = addressList.map(addr => keccak256(addr))
+            const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true});
+            setMerkleTree(merkleTree);
+  
+            //get the tree root
+            const rootHash = '0x' + merkleTree.getRoot().toString('hex');
+            setrootHash(rootHash);
 
           //get claimingAddress object
           const claimingAddress= keccak256(signerAddress);
@@ -80,19 +134,20 @@
           //const proofAddress = merkleProof.toString().replaceAll('\'', '').replaceAll(' ', '');
           // console.log("ProofAddress:",  proofAddress, typeof proofAddress);
 
-           const isValid = merkleTree.verify(merkleProof, claimingAddress, rootHash);
+          const isValid = merkleTree.verify(merkleProof, claimingAddress, rootHash);
+          setisValid(isValid);
+          console.log("Is this human on the prestigious Fashion List? --", isValid);
+          //check if the HUMAN is on the Fashion List
+          return isValid;
+  
 
-           //check if the address is valid
-           setisValid(true);
-           console.log("is this address valid?", isValid);
-
-           //if valid, allow the address to presaleMint
-           if(isValid){
-            presaleMint();
-           }
-           else{
-            window.alert("Oppssss..Bummer..You are not on the Fashion List!");
-           }
+           //if valid, allow the HUMAN to presaleMint
+          //  if(isValid){
+          //   presaleMint();
+          //  }
+          //  else{
+          //   window.alert("Oppssss..Bummer..You are not on the Fashion List!");
+          //  }
         }
         catch (err) {
           console.error(err);
@@ -107,7 +162,6 @@
           const signer = await getProviderOrSigner(true);
 
           // Create a new instance of the Contract with a Signer, which allows
-
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
 
           // call the presale from the contract and pass true to it
@@ -129,29 +183,29 @@
       /**
        * publicMint: Mint an NFT
        */
-      // const publicMint = async () => {
-      //   try {
-      //     console.log("Public mint");
-      //     // We need a Signer here since this is a 'write' transaction.
-      //     const signer = await getProviderOrSigner(true);
-      //     // Create a new instance of the Contract with a Signer, which allows
-      //     // update methods
-      //     const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
-      //     // call the mint from the contract to mint the LW3Punks
-      //     const tx = await nftContract.mint({
-      //       // value signifies the cost of one LW3Punks which is "0.01" eth.
-      //       // We are parsing `0.01` string to ether using the utils library from ethers.js
-      //       value: utils.parseEther("0.01"),
-      //     });
-      //     setLoading(true);
-      //     // wait for the transaction to get mined
-      //     await tx.wait();
-      //     setLoading(false);
-      //     window.alert("You successfully minted a TooCool Dolander!");
-      //   } catch (err) {
-      //     console.error(err);
-      //   }
-      // };
+      const publicMint = async () => {
+        try {
+          console.log("Public mint");
+          // We need a Signer here since this is a 'write' transaction.
+          const signer = await getProviderOrSigner(true);
+          // Create a new instance of the Contract with a Signer, which allows
+          // update methods
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+          // call the mint from the contract to mint the LW3Punks
+          const tx = await nftContract.mint({
+            // value signifies the cost of one LW3Punks which is "0.01" eth.
+            // We are parsing `0.01` string to ether using the utils library from ethers.js
+            value: utils.parseEther("0.001"),
+          });
+          setLoading(true);
+          // wait for the transaction to get mined
+          await tx.wait();
+          setLoading(false);
+          window.alert("You successfully minted a TooCool Dolander!");
+        } catch (err) {
+          console.error(err);
+        }
+      };
 
       /*
         connectWallet: Connects the MetaMask wallet
@@ -162,7 +216,7 @@
           // When used for the first time, it prompts the user to connect their wallet
           await getProviderOrSigner();
           setWalletConnected(true);
-         
+          console.log("Connecting to the human");
         } catch (err) {
           console.error(err);
         }
@@ -189,41 +243,7 @@
         }
       };
 
-      // const checkIfPresaleStarted = async () => {
-      //   try {
-      //     const provider = await getProviderOrSigner();
-
-      //     const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-
-      //     const contract_whitelistMintStarted = await nftContract.whitelistMintStarted();
-      //     //_whitelistMintedStarted = false then do the following
-      //     if (!contract_whitelistMintStarted){
-      //       console.log(contract_whitelistMintStarted);
-      //       window.alert("Presale has not started yet");
-      //     }   
-      //     return contract_whitelistMintStarted;   
-      //   } catch (err) {
-      //     console.error(err);
-      //   }
-      // };
-
-      // const checkIfPresaleEnded = async () => {
-      //   try {
-      //     const provider = await getProviderOrSigner();
-
-      //     const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-
-      //     const contract_whitelistMintEnded = await nftContract.whitelistMintEnded();
-      //     //_whitelistMintedEnded = true then do the following
-      //     if (contract_whitelistMintEnded){
-      //       window.alert("Presale has ended");
-      //     }
-      //     return contract_whitelistMintEnded; 
-      //   } catch (err) {
-      //     console.error(err);
-      //   }
-      // };
-
+      
       /**
        * Returns a Provider or Signer object representing the Ethereum RPC with or without the
        * signing capabilities of metamask attached
@@ -271,38 +291,37 @@
           });
 
           connectWallet();
-
-          //build a tree
-          const leafNodes = addressList.map(addr => keccak256(addr))
-          const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true});
-          setMerkleTree(merkleTree);
-
-          //get the tree root
-          const rootHash = '0x' + merkleTree.getRoot().toString('hex');
-          setrootHash(rootHash);
-          
-          //  // Check if presale has started and ended
-          // const contract_whitelistMintStarted = checkIfPresaleStarted();
-          // console.log(contract_whitelistMintStarted);
-          // // if started = false, then check if it has ended
-          // if (!contract_whitelistMintStarted) {
-          //   checkIfPresaleEnded();
-          // }
-          // // else if (whitelistMintStarted){
-          // //   getOwner();
-          // // }
-
-          getTokenIdsMinted();
-          
-          //check if is a valid address
+          //check if the human is on the Fashion List
+          const isValid = checkifValid();
           checkifValid();
-          //console.log("checking if valid",isValid);
 
-           if(isClaimed){
-            //check if claimed 
-            checkifClaimed();
-            //console.log("checking if claimed",isClaimed);
+          //check if the human has claimed a TCD
+          const isClaimed =  checkifClaimed();
+          if(isValid && !isClaimed){
+              presaleMint();
           }
+          /*
+          CHECK STATE OF SALES
+          */   
+          //check if presale has started and ended
+          const presaleStarted = checkIfPresaleStarted();
+          
+          // if started = true, then check if it has ended
+          if (presaleStarted) {
+            checkIfPresaleEnded();
+          }
+          
+          console.log("finish checking state, start checking human")
+
+          //if started = true & ended = false, check if the human is on the Fashion List
+         
+          // if(presaleStarted && !presaleEnded){
+          //  checkifValid();
+          // }
+         
+          
+           
+          getTokenIdsMinted();
   
           // set an interval to get the number of token Ids minted every 5 seconds
           setInterval(async function () {
@@ -324,53 +343,69 @@
           );
         }
 
-        if (!isClaimed) {
+         //If token has already be minted
+         if (isClaimed) {
+              return (
+                 <div>
+                   <div className={styles.description}>
+                     HEY! You are one of TooCool now! 🥳
+                   </div>
+                   <button className={styles.button}>
+                     View your nft
+                   </button>
+                 </div>
+              );
+         }   
+         
+        // If connected user is not the owner but presale hasn't started yet, tell them that
+        // if presaleStarted = false
+        if (!presaleStarted && !presaleEnded) {
           return (
-             <div>
-               <div className={styles.description}>
-                 HEY! You are one of TooCool now! 🥳
-               </div>
-               <button className={styles.button}>
-                 View your nft
-               </button>
-             </div>
+            <div>
+              <div className={styles.description}>
+                Presale countdown! Secure a spot on Fashion List now! </div>
+              <button className={styles.button} onClick={publicMint}>
+                Join Fashion List
+             </button>
+            </div>
           );
         }
 
-        // // If connected user is not the owner but presale hasn't started yet, tell them that
-        // // if whitelistMintStarted = false
-        // if (!contract_whitelistMintStarted) {
-        //   return (
-        //     <div>
-        //       <div className={styles.description}>Presale hasnt started!</div>
-        //     </div>
-        //   );
-        // }
+         // If presale started, but hasn't ended yet, allow for minting during the presale period
+         // if started = true, ended = false, then presale mint
+        if (presaleStarted && !presaleEnded && isValid && !isClaimed) {
+          return (
+            <div>
+              <div className={styles.description}>
+                Presale has started!!! If your address is whitelisted, Mint a TooCool Dolander 🥳
+              </div>
+              <button className={styles.button} onClick={presaleMint}>
+                Presale Mint 🚀
+              </button>
+            </div>
+          );
+        }
 
-        //  // If presale started, but hasn't ended yet, allow for minting during the presale period
-        //  // if started = true, ended = false, then presale mint
-        // if (contract_whitelistMintStarted && !contract_whitelistMintEnded) {
-        //   return (
-        //     <div>
-        //       <div className={styles.description}>
-        //         Presale has started!!! If your address is whitelisted, Mint a TooCool Dolander 🥳
-        //       </div>
-        //       <button className={styles.button} onClick={presaleMint}>
-        //         Presale Mint 🚀
-        //       </button>
-        //     </div>
-        //   );
-        // }
+         // if started = true, ended = false, but not on the list
+         if (presaleStarted && !presaleEnded && !isValid) {
+          return (
+            <div>
+              <div className={styles.description}>
+                Public sale will start soon
+              </div>
+            </div>
+          );
+        }
 
-        // // If presale started and has ended, its time for public minting
-        // // if started = true ended =true , then public mint
-        // if (contract_whitelistMintStarted && contract_whitelistMintEnded) {
-        //   return (
-        //     <button className={styles.button} onClick={publicMint}>
-        //       Public Mint 🚀
-        //     </button>
-        //   );
-        // }
+        // If presale started and has ended, its time for public minting
+        // if started = true ended =true , then public mint
+        if (presaleStarted && presaleEnded) {
+          return (
+            <button className={styles.button} onClick={publicMint}>
+              Public Mint 🚀
+            </button>
+          );
+        }
 
         // If we are currently waiting for something, return a loading button
         if (loading) {
@@ -381,10 +416,10 @@
         return (
           <div>
                 <div className={styles.description}>
-                   Presale has started!!! If your address is whitelisted, Mint a TooCool Dolander 🥳
+                   TooCool Dolander 🥳
                  </div>
                  <button className={styles.button} onClick={checkifValid}>
-                   Presale Mint 🚀
+                   Wanna be TooCool? 🚀
                  </button>
          </div>
 
@@ -409,7 +444,7 @@
                 Its an NFT collection on Ethereum.
               </div>
               <div className={styles.description}>
-                {tokenIdsMinted}/333 have been minted
+                {tokenIdsMinted}/3333 have been minted
               </div>
               {renderButton()}
             </div>
