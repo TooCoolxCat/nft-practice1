@@ -4,7 +4,9 @@ const { MerkleTree } = require("merkletreejs");
 let whitelistAddresses = [
     "0x48cE884A1ecead469c50b42370aF2983D59Bbb94", 
     "0xd01B3098483Ada04e133C8A3B9912D4cBfFb8C7E",
-    "0xd38796bd8455c30632929B4384a0b5865aeBb9DB"
+    "0xd38796bd8455c30632929B4384a0b5865aeBb9DB",
+    "0x1734A28705322cBa314DBC63706267C95eAf94C6",
+    "0x813963b05bcE179693d5f867e30d8F38b8C6a6d0"
 ];
 
 // Create a new array of `leafNodes` by hashing all indexes of the `whitelistAddresses`
@@ -43,4 +45,4 @@ console.log("Root Hash: ", rootHash);
 //console.log(merkleTree.verify(hexProof, claimingAddress, rootHash));
 
 
-//Root Hash:  0x108928b18910db126ca1df62ca7362596c18303437ee639bde80b34ac477a84b
+//Root Hash:  0xa96e091d8aa997dac7c9bea47662becc238559b81acee4aae2e1a6c7487f286c

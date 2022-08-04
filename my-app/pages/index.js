@@ -33,7 +33,7 @@
       const [isClaimed, setisClaimed] = useState(false);
 
       const [tokenAddress, setTokenAddress] = useState("");
-
+      
       const checkIfPresaleStarted = async () => {
         try {
           const provider = await getProviderOrSigner();
@@ -353,7 +353,7 @@
        if (presaleStarted && !presaleEnded && !isValid) {
         return (
             <div className={styles.description}>
-              Public sale: August 13th 🥳
+              Current State: Presale <br></br>Public sale: August 13th 🥳
             </div>
         );
       }
@@ -415,12 +415,22 @@
           </div>
           );
         }  
+
+        if (presaleStarted && !presaleEnded && !isValid) {
+          return (
+            <div className={styles.buttonContainer}>
+            <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
+            <a href="https://twitter.com/toocoolxcat" className={styles.buttonText} target="_blank" rel="noreferrer">Follow Twitter</a>
+          </div>
+          );
+        }
+
          //If token has already be minted
          if (isClaimed) {
           return (
             <div className={styles.buttonContainer}>
               <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-              <a href={tokenAddress} className={styles.buttonText} target="_blank" rel="noreferrer">View NFT</a>
+              <a className={styles.buttonText} target="_blank" rel="noreferrer">View NFT</a>
             </div>
           );
        }   
