@@ -420,7 +420,7 @@
           return (
             <div className={styles.buttonContainer}>
               <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-              <a href={tokenAddress} className={styles.buttonText} target="_blank">View NFT</a>
+              <a href={tokenAddress} className={styles.buttonText} target="_blank" rel="noreferrer">View NFT</a>
             </div>
           );
        }   
@@ -428,7 +428,7 @@
           return (
             <div className={styles.buttonContainer}>
               <img className={styles.buttonImage} src="./ele/btn-mint.gif"  alt=" Button" />
-                <a className={styles.buttonText}  target="_blank"> Loading... </a>
+                <a className={styles.buttonText} > Loading... </a>
             </div>
            );
         }
@@ -436,7 +436,7 @@
         return (
           <div className={styles.buttonContainer}>
             <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-              <a href="https://app.heymint.xyz/toocool-dolander" className={styles.buttonText}  target="_blank"> Join List </a>
+              <a href="https://app.heymint.xyz/toocool-dolander" className={styles.buttonText}  target="_blank" rel="noreferrer"> Join List </a>
           </div>
          );
       };
