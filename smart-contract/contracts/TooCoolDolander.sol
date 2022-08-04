@@ -17,15 +17,16 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     string _baseTokenURI;
     string public notRevealedURI;
 
-    uint256 public cost = 0.001 ether; 
+    uint256 public cost = 0.0 ether; 
     uint256 public tokenIds;
-    uint256 public maxSupply = 333; 
+    uint256 public maxSupply = 3333; 
 
     bool public _paused = false;
     bool public isValid = false;
     bool public whitelistMintStarted = false;
     bool public whitelistMintEnded = false;
     bool public revealed = false;
+
 
     //Constructor takes in the baseURI to set _baseTokenURI for the collection.
     constructor(
@@ -42,55 +43,55 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
             _;
         }
 
-    // modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 root){
-    //   require(
-    //     MerkleProof.verify(
-    //       merkleProof,
-    //       root,
-    //       keccak256(abi.encodePacked(msg.sender))
-    //     ),
-    //     "Address does not exist in list"
-    //   );
-    //   _;
-    // }
+    modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 merkleRoot){
+      require(
+        MerkleProof.verify(
+          merkleProof,
+          merkleRoot,
+          keccak256(abi.encodePacked(msg.sender))
+        ),
+        "Address does not exist in the Fashion List"
+      );
+      _;
+    }
 
-  function whitelistMint (bool _isValid) 
-    public 
-    payable 
-    onlyWhenNotPaused{
-      // require(
-      //   MerkleProof.verify(
-      //     merkleProof,
-      //     root,
-      //     keccak256(abi.encodePacked(msg.sender))
-      //   ),
-      //   "Address does not exist in list"
-      // );
+
+  function whitelistMint(bytes32[] calldata merkleProof)
+        public
+        payable
+        onlyWhenNotPaused
+        isValidMerkleProof(merkleProof, merkleRoot){
+
         require(tokenIds < maxSupply, "Exceed  supply");
+        require(!whitelistMintEnded, 'The whitelist sale has ended!');
         require(msg.value >= cost, "Ether sent is not correct");
-        isValid = _isValid;
-        require(isValid, 'Invalid proof!');
-        //update the whitelist to be ture
+        require(balanceOf(msg.sender) == 0, 'Each address may only own one TCD');
+
         whitelistClaimed[msg.sender] = true;
         tokenIds += 1;
+        _safeMint(msg.sender, tokenIds);
 
-        _safeMint(msg.sender, 1);
   }
 
-  function mint() public payable onlyWhenNotPaused {
-            // require(tokenIds < maxSupply, "Exceed maximum supply");
-            // require(msg.value >= cost, "Ether sent is not correct");
-            // require(whitelistMintEnded, 'The whitelist sale has ended!');
 
-            tokenIds += 1;
-            _safeMint(msg.sender, tokenIds);
-    }
+  function mint() public payable onlyWhenNotPaused {
+
+        require(tokenIds < maxSupply, "Exceed maximum supply");
+        require(msg.value >= cost, "Ether sent is not correct");
+        require(balanceOf(msg.sender) == 0, 'Each address may only own one TCD');
+        require(whitelistMintEnded, 'The whitelist sale has ended!');
+
+        tokenIds += 1;
+        _safeMint(msg.sender, tokenIds);
+
+  }
   
   function _baseURI() internal view virtual override returns (string memory) {
      return _baseTokenURI;
- }
+  }
 
- function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+  function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+
     require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
     if(revealed == false){
       return notRevealedURI;
@@ -101,7 +102,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
 
     }
-}
+  }
 
 /////onlyOwner////
 
@@ -127,11 +128,10 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
     revealed = true;
   }
 
-    function mintForAddress(uint256 _mintAmount, address _receiver) public onlyOwner {
+  function mintForAddress(uint256 _mintAmount, address _receiver) public onlyOwner {
     tokenIds += _mintAmount;
     _safeMint(_receiver, _mintAmount);
   }
-
 
   function withdraw() public payable onlyOwner {
 

@@ -1,5 +1,19 @@
-.main {
+.app{
   min-height: 90vh;
+  background-image: url(/ele/background.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: fixed;
+}
+.nav{
+  height:55px;
+  left:auto;
+  padding-top:20px;
+  padding-bottom:20px;
+  margin-left: 84px;
+}
+
+.main {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -10,20 +24,10 @@
 .footer {
   display: flex;
   padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
+  /* border-top: 1px solid #eaeaea; */
   justify-content: center;
   align-items: center;
-}
-
-.image {
-  width: 70%;
-  height: 50%;
-  margin-left: 20%;
-}
-
-.title {
-  font-size: 2rem;
-  margin: 2rem 0;
+  color: #ffffff;
 }
 
 .description {
@@ -32,17 +36,74 @@
   font-size: 1.2rem;
 }
 
-.button {
-  border-radius: 4px;
-  background-color: blue;
+.socialmediaBtn {
+  background-color: transparent;
   border: none;
-  color: #ffffff;
-  font-size: 15px;
-  padding: 20px;
-  width: 200px;
   cursor: pointer;
-  margin-bottom: 2%;
 }
+
+.socialmediaIMG {
+  width:auto;
+  height:50px;
+  padding-right:21px;
+}
+
+
+.title {
+  position:absolute;
+  top: 15%;
+  left:11%;
+  width: 50%;
+  z-index:1;
+}
+
+.screenContainer{
+  position: relative;
+  text-align: center;
+}
+
+.screenContent{
+  position: absolute;
+  width:40%;
+  top: 40%;
+  left: 52%;
+  transform: translate(-50%, -50%);
+ 
+}
+
+.screenFrame {
+  width: 90%;
+}
+
+.screenPop {
+  position:absolute;
+  top:24%;
+  right:9%;
+  width: 25%;
+}
+
+.buttonContainer{
+  position:fixed;
+  height: auto;
+  right:1%;
+  bottom:10%;
+  z-index:1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.buttonImage{
+  width: 90%;
+}
+
+.buttonText{
+  position: absolute;
+  top: 50%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+}
+
 @media (max-width: 1000px) {
   .main {
     width: 100%;

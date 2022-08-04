@@ -1,4 +1,5 @@
 export const addressList = [
     "0x48cE884A1ecead469c50b42370aF2983D59Bbb94", 
+    "0xd01B3098483Ada04e133C8A3B9912D4cBfFb8C7E",
     "0xd38796bd8455c30632929B4384a0b5865aeBb9DB"
 ]
