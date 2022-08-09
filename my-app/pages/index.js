@@ -19,7 +19,7 @@
       // tokenIdsMinted keeps track of the number of tokenIds that have been minted
       const [tokenIdsMinted, setTokenIdsMinted] = useState("0"); 
       // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
-      const web3ModalRef = useRef();
+      //const web3ModalRef = useRef();
 
       const [presaleStarted, setPresaleStarted] = useState(false);
       // presaleEnded keeps track of whether the presale ended

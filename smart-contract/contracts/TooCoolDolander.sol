@@ -76,7 +76,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
           merkleRoot,
           keccak256(abi.encodePacked(msg.sender))
         ),
-        "NOT IN FASHIION LIST"
+        "NOT ON FASHIION LIST"
       );
       _;
     }
@@ -145,7 +145,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
   function reveal () external onlyOwner(){
     revealed = true;
   }
-  function champagneBeforeParty() external virtual onlyOwner {
+  function champagneBeforeParty() external onlyOwner {
         require(!champagneFinished, "RESERVE MINT COMPLETED");
 
         for (uint256 tokenId = 1; tokenId <= maxSupply; tokenId++) {
