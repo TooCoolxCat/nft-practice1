@@ -1,4 +1,4 @@
-    import { Contract, providers, utils} from "ethers";
+    import { Contract, ethers, providers, utils} from "ethers";
     import Head from "next/head";
     import React, { useEffect, useRef, useState } from "react";
     import Web3Modal from "web3modal";
@@ -38,7 +38,7 @@
         try {
           const provider = await getProviderOrSigner();
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-          const presaleStarted = await nftContract.whitelistMintStarted();
+          const presaleStarted = await nftContract.catWalkStarted();
           console.log("Has Presale started? --", presaleStarted);
           //_whitelistMintedStarted = false then do the following
           if (!presaleStarted){
@@ -56,7 +56,7 @@
         try {
           const provider = await getProviderOrSigner();
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
-          const presaleEnded = await nftContract.whitelistMintEnded();
+          const presaleEnded = await nftContract.catWalkEnded();
           console.log("Has Presale ended? --", presaleEnded);
           //presaleEnded = true then do the following
           if (presaleEnded){
@@ -156,7 +156,7 @@
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
 
           // call the presale from the contract and pass true to it
-          const tx = await nftContract.whitelistMint(merkleProof, {
+          const tx = await nftContract.fashionlistMint(merkleProof, {
             value: utils.parseEther("0.0"),
           });
 
@@ -188,7 +188,7 @@
           // update methods
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
           // call the mint from the contract to mint the LW3Punks
-          const tx = await nftContract.mint({
+          const tx = await nftContract.beTooCool({
             // value signifies the cost of one LW3Punks which is "0.01" eth.
             // We are parsing `0.01` string to ether using the utils library from ethers.js
             value: utils.parseEther("0.0"),
@@ -258,10 +258,20 @@
        * @param {*} needSigner - True if you need the signer, default false otherwise
        */
       const getProviderOrSigner = async (needSigner = false) => {
+
+        let web3Modal = new Web3Modal({
+          network: "Rinkeby",
+          cacheProvider: false,
+          providerOptions: {},
+          disableInjectedProvider: false,
+        });
+
+        const provider = await web3Modal.connect();
+        const web3Provider = new ethers.providers.Web3Provider(provider);
         // Connect to Metamask
         // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
-        const provider = await web3ModalRef.current.connect();
-        const web3Provider = new providers.Web3Provider(provider);
+        // const provider = await web3ModalRef.current.connect();
+        // const web3Provider = new providers.Web3Provider(provider);
 
         // If user is not connected to the Mumbai network, let them know and throw an error
         const { chainId } = await web3Provider.getNetwork();
@@ -282,16 +292,12 @@
       // In this case, whenever the value of `walletConnected` changes - this effect will be called
       useEffect(() => {
         // if wallet is not connected, create a new instance of Web3Modal and connect the MetaMask wallet
-        if (!walletConnected) {
+        
           // Assign the Web3Modal class to the reference object by setting it's `current` value
           // The `current` value is persisted throughout as long as this page is open
-          web3ModalRef.current = new Web3Modal({
-            network: "Rinkeby",
-            providerOptions: {},
-            disableInjectedProvider: false,
-          });
 
-          connectWallet();
+          if (walletConnected) {
+          setLoading(true);
           checkifClaimed();
           checkifValid();
         
@@ -303,7 +309,8 @@
           }
       
           getTokenIdsMinted();
-  
+
+          setLoading(false);
     
           // set an interval to get the number of token Ids minted every 5 seconds
           setInterval(async function () {
@@ -316,45 +323,67 @@
         renderScreen: Returns the computer image
       */
       const renderScreen = () =>{
+        if (loading) {
+          return <img className = {styles.screenFrame}  src="./ele/frontImage1.png"  alt="cool computer" />
+        }
         if (!walletConnected) {
-         return <img className = {styles.screenFrame}  src="./ele/frontImage.gif"  alt="cool computer" />
+          return <img className = {styles.screenFrame}  src="./ele/frontImage.gif"  alt="cool computer" />
         }
-        else{
-          return <img className = {styles.screenFrame}  src="./ele/frontImage_blank.png"  alt="cool computer" />
+
+        if (!presaleStarted && !presaleEnded) {
+          return <img className = {styles.screenFrame}  src="./ele/frontImage1.png"  alt="cool computer" />
         }
-    }
+
+        if (presaleStarted && !presaleEnded) {
+          return <img className = {styles.screenFrame}  src="./ele/frontImage_presale.png"  alt="cool computer" />
+        }
+
+        if (presaleStarted && presaleEnded) {
+          return <img className = {styles.screenFrame}  src="./ele/frontImage_publicsale.png"  alt="cool computer" />
+        }
+      };
       /*
         renderDescription: Returns description of the state of the dapp
       */
      const renderDescription =() => {
        // If wallet is not connected, return a button which allows them to connect their wallet
-      //  if (!walletConnected) {
-      //     return <img className = {styles.screenFrame}  onClick={connectWallet} src="./ele/btn-mint.gif"  alt=" Button" />
-      // }
-      //Default state: Join Fashion List
-       if (!presaleStarted && !presaleEnded) {
+       if (!walletConnected) {
         return (
-            <div className={styles.description}>
-             Mint Date August 12nd, 13th!  <br></br>Get on Fashion List now! 
-             </div>
+          <div></div>
         );
-      }
+    }
 
-       // if presale started = true, ended = false, then presale mint
+       // if presale started = true, ended = false, if valid then presale mint
       if (presaleStarted && !presaleEnded && isValid && !isClaimed) {
         return (
-            <div className={styles.description}>
-              You go, girl!  <br></br>Mint a TooCool Dolander 🥳
+          <div>
+            <div className={styles.descriptionLarge}>
+               {tokenIdsMinted}/3333
             </div>
+            <div className={styles.description}>
+               have been minted
+            </div>
+            <div className={styles.description}>
+                You go, girl!  <br></br>Mint a TooCool Dolander 🥳
+            </div>
+          </div>
         );
       }
 
        // if started = true, ended = false, but not on the list
        if (presaleStarted && !presaleEnded && !isValid) {
         return (
-            <div className={styles.description}>
-              Current State: Presale <br></br>Public sale: August 13th 🥳
+          <div>
+            <div className={styles.descriptionLarge}>
+              {tokenIdsMinted}/3333
             </div>
+            <div className={styles.description}>
+              have been minted
+            </div>
+            <div className={styles.description}>
+                Public sale: August 13th
+            </div>
+          </div>
         );
       }
 
@@ -362,8 +391,16 @@
       // if started = true ended =true , then public mint
       if (presaleStarted && presaleEnded && !isClaimed) {
         return (
-          <div className={styles.description}>
-            Bling Bling Time! <br></br>Mint a TooCool Dolander 🥳
+        <div>
+            <div className={styles.descriptionLarge}>
+              {tokenIdsMinted}/3333
+            </div>
+            <div className={styles.description}>
+              have been minted
+            </div>
+            <div className={styles.description}>
+              Bling Bling Time! <br></br>Mint a TooCool Dolander 🥳
+            </div>  
         </div>
         );
       }
@@ -372,9 +409,17 @@
        //If token has already be minted
        if (isClaimed) {
         return (
+          <div>
+            <div className={styles.descriptionLarge}>
+              {tokenIdsMinted}/3333
+            </div>
+            <div className={styles.description}>
+              have been minted
+            </div>
              <div className={styles.description}>
                Booyah! You look TooCool! 🥳
              </div>
+         </div>
         );
    }   
    
@@ -382,12 +427,7 @@
       if (loading) {
         return <button className={styles.buttonContainer}>Loading...</button>;
       }
-      
-      return (
-              <div className={styles.description}>
-                 TooCool Dolander 🥳
-               </div>
-      );
+
      }
 
       const renderButton = () => {
@@ -395,7 +435,7 @@
         if (!walletConnected) {
           return (
           <div className={styles.buttonContainer}>
-              <img className={styles.buttonImage} onClick={connectWallet} src="./ele/btn-mint.gif"  alt=" Button" />
+              <img className={styles.buttonImage} onClick={connectWallet} src="./ele/btn-connectwallet.gif"  alt=" Button" />
           </div>
           );
         }
@@ -407,6 +447,15 @@
           </div>
           );
         }
+
+        if (presaleStarted && !presaleEnded && !isValid) {
+          return (
+            <div className={styles.buttonContainer}>
+
+           </div>
+          );
+        }
+
         //public sale start
         if (presaleStarted && presaleEnded && !isClaimed) {
           return (
@@ -416,37 +465,26 @@
           );
         }  
 
-        if (presaleStarted && !presaleEnded && !isValid) {
-          return (
-            <div className={styles.buttonContainer}>
-            <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-            <a href="https://twitter.com/toocoolxcat" className={styles.buttonText} target="_blank" rel="noreferrer">Follow Twitter</a>
-          </div>
-          );
-        }
 
          //If token has already be minted
          if (isClaimed) {
           return (
             <div className={styles.buttonContainer}>
-              <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-              <a className={styles.buttonText} target="_blank" rel="noreferrer">View NFT</a>
+              <img className={styles.buttonImage} src="./ele/btn-viewnft.gif"  alt=" Button" />
             </div>
           );
        }   
         if (loading) {
           return (
             <div className={styles.buttonContainer}>
-              <img className={styles.buttonImage} src="./ele/btn-mint.gif"  alt=" Button" />
-                <a className={styles.buttonText} > Loading... </a>
+              <img className={styles.buttonImage} src="./ele/btn-loading.gif"  alt=" Button" />
             </div>
            );
         }
         //Default state: Join fashion list
         return (
           <div className={styles.buttonContainer}>
-            <img className={styles.buttonImage} src="./ele/btn.png"  alt=" Button" />
-              <a href="https://app.heymint.xyz/toocool-dolander" className={styles.buttonText}  target="_blank" rel="noreferrer"> Join List </a>
+
           </div>
          );
       };
@@ -478,19 +516,16 @@
             <div>
             <img className={styles.title} src="./ele/title_dolander.gif" alt="logo" />
               <div className={styles.screenContainer}>
-                {renderScreen()}
+                    {renderScreen()}
                   <div className={styles.screenContent}>
-                    <div className={styles.description}>
-                      {tokenIdsMinted}/3333 have been minted
-                    </div>
                     {renderDescription()}
                   </div>
               </div>
               <div className={styles.buttonContainer}>
-              {renderButton()}
+                 {renderButton()}
               </div>
          
-            <img className={styles.screenPop}  src="./ele/popImage.gif" alt="pop-content" />
+            {/* <img className={styles.screenPop}  src="./ele/popImage.gif" alt="pop-content" /> */}
             </div>
           </div>
 

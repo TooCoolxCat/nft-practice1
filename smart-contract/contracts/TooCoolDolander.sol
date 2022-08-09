@@ -1,45 +1,71 @@
 // SPDX-License-Identifier: MIT
+
+// ,---------.    ,-----.        ,-----.        _______      ,-----.        ,-----.      .---.           _░▒███████
+// \          \ .'  .-,  '.    .'  .-,  '.     /   __  \   .'  .-,  '.    .'  .-,  '.    | ,_|           ░██▓▒░░▒▓██
+//  `--.  ,---'/ ,-.|  \ _ \  / ,-.|  \ _ \   | ,_/  \__) / ,-.|  \ _ \  / ,-.|  \ _ \ ,-./  )          ██▓▒░__░▒▓██___██████
+//     |   \  ;  \  '_ /  | :;  \  '_ /  | :,-./  )      ;  \  '_ /  | :;  \  '_ /  | :\  '_ '`)        ██▓▒░___░▓██▓_____░▒▓██
+//     :_ _:  |  _`,/ \ _/  ||  _`,/ \ _/  |\  '_ '`)    |  _`,/ \ _/  ||  _`,/ \ _/  | > (_)  )        ██▓▒░_______________░▒▓██
+//     (_I_)  : (  '\_/ \   ;: (  '\_/ \   ; > (_)  )  __: (  '\_/ \   ;: (  '\_/ \   ;(  .  .-'        _██▓▒░______________░▒▓██
+//    (_(=)_)  \ `"/  \  ) /  \ `"/  \  ) / (  .  .-'_/  )\ `"/  \  ) /  \ `"/  \  ) /  `-'`-'|___      __██▓▒░____________░▒▓██
+//     (_I_)    '. \_/``".'    '. \_/``".'   `-'`-'     /  '. \_/``".'    '. \_/``".'    |        \     ___██▓▒░__________░▒▓██
+//     '---'      '-----'        '-----'       `._____.'     '-----'        '-----'      `--------`     ____██▓▒░________░▒▓██
+//                                                                                                      _____██▓▒░_____░▒▓██
+//    ______         ,-----.      .---.       ____   ,---.   .--.______         .-''-.  .-------.       ______██▓▒░__░▒▓██
+//   |    _ `''.   .'  .-,  '.    | ,_|     .'  __ `.|    \  |  |    _ `''.   .'_ _   \ |  _ _   \      _______█▓▒░░▒▓██
+//   | _ | ) _  \ / ,-.|  \ _ \ ,-./  )    /   '  \  \  ,  \ |  | _ | ) _  \ / ( ` )   '| ( ' )  |      _________░▒▓██
+//   |( ''_'  ) |;  \  '_ /  | :\  '_ '`)  |___|  /  |  |\_ \|  |( ''_'  ) |. (_ o _)  ||(_ o _) /      _______░▒▓██
+//   | . (_) `. ||  _`,/ \ _/  | > (_)  )     _.-`   |  _( )_\  | . (_) `. ||  (_,_)___|| (_,_).' __    _____░▒▓██
+//   |(_    ._) ': (  '\_/ \   ;(  .  .-'  .'   _    | (_ o _)  |(_    ._) ''  \   .---.|  |\ \  |  | 
+//   |  (_.\.' /  \ `"/  \  ) /  `-'`-'|___|  _( )_  |  (_,_)\  |  (_.\.' /  \  `-'    /|  | \ `'   / 
+//   |       .'    '. \_/``".'    |        \ (_ o _) /  |    |  |       .'    \       / |  |  \    /  
+//   '-----'`        '-----'      `--------`'.(_,_).''--'    '--'-----'`       `'-..-'  ''-'   `'-'                                                                                         
+
+// ✨The most fashionable cat in WEB3✨ 
+//  Made with Beauty and Love;
+
+
+
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-contract TooCoolDolander is ERC721Enumerable, Ownable{
+contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
     
     using Strings for uint256;
     
     bytes32 public merkleRoot;
 
-    mapping(address => bool) public whitelistClaimed;
+    mapping(address => bool) public fashionlistClaimed;
 
-    string _baseTokenURI;
-    string public notRevealedURI;
+    string selfie;
+    string public hiddenMessage;
 
     uint256 public cost = 0.0 ether; 
     uint256 public tokenIds;
-    uint256 public maxSupply = 3333; 
+    uint256 public immutable maxSupply = 3333; 
+    uint256 public immutable reserveSupply = 333;
 
     bool public _paused = false;
     bool public isValid = false;
-    bool public whitelistMintStarted = false;
-    bool public whitelistMintEnded = false;
+    bool public catWalkStarted = false;
+    bool public catWalkEnded = false;
     bool public revealed = false;
+    bool public champagneFinished = false;
 
-
-    //Constructor takes in the baseURI to set _baseTokenURI for the collection.
     constructor(
-    string memory baseURI,
-    string memory initNotRevealedURI
-      ) ERC721("TooCoolDolander", "TCD") {
-    _baseTokenURI = baseURI;
-    notRevealedURI = initNotRevealedURI;
+    string memory selfieURI,
+    string memory hiddenMessageURL
+      ) ERC721("TooCoolDolander", "TOOCOOL") {
+    selfie = selfieURI;
+    hiddenMessage = hiddenMessageURL;
   }
 
-
     modifier onlyWhenNotPaused {
-            require(!_paused, "Contract currently paused");
+            require(!_paused, "CONTRACT PAUSED");
             _;
         }
 
@@ -50,97 +76,92 @@ contract TooCoolDolander is ERC721Enumerable, Ownable{
           merkleRoot,
           keccak256(abi.encodePacked(msg.sender))
         ),
-        "Address does not exist in the Fashion List"
+        "NOT IN FASHIION LIST"
       );
       _;
     }
 
-
-  function whitelistMint(bytes32[] calldata merkleProof)
-        public
+  function fashionlistMint(bytes32[] calldata merkleProof)
+        external
         payable
         onlyWhenNotPaused
+        nonReentrant
         isValidMerkleProof(merkleProof, merkleRoot){
 
-        require(tokenIds < maxSupply, "Exceed  supply");
-        require(!whitelistMintEnded, 'The whitelist sale has ended!');
-        require(msg.value >= cost, "Ether sent is not correct");
-        require(balanceOf(msg.sender) == 0, 'Each address may only own one TCD');
+        require(tokenIds < maxSupply, "EXCEED  SUPPLY");
+        require(catWalkStarted&&!catWalkEnded, 'NOT RIGHT TIME');
+        require(msg.value >= cost, "ETHER SENT NOT CORRECT");
+        require(balanceOf(msg.sender) == 0, 'ONE TOOCOOL PER WALLET');
 
-        whitelistClaimed[msg.sender] = true;
+        fashionlistClaimed[msg.sender] = true;
         tokenIds += 1;
         _safeMint(msg.sender, tokenIds);
-
   }
 
-
-  function mint() public payable onlyWhenNotPaused {
-
-        require(tokenIds < maxSupply, "Exceed maximum supply");
-        require(msg.value >= cost, "Ether sent is not correct");
-        require(balanceOf(msg.sender) == 0, 'Each address may only own one TCD');
-        require(whitelistMintEnded, 'The whitelist sale has ended!');
+  function beTooCool() external payable nonReentrant onlyWhenNotPaused {
+        require(tokenIds < maxSupply, "EXCEED  SUPPLY");
+        require(msg.value >= cost, "ETHER SENT NOT CORRECT");
+        require(balanceOf(msg.sender) == 0, 'ONE TOOCOOL PER WALLET');
+        require(catWalkEnded, 'NOT RIGHT TIME');
 
         tokenIds += 1;
         _safeMint(msg.sender, tokenIds);
-
   }
   
   function _baseURI() internal view virtual override returns (string memory) {
-     return _baseTokenURI;
+     return selfie;
   }
 
   function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-
     require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
     if(revealed == false){
-      return notRevealedURI;
+      return hiddenMessage;
     }
     else{
-    string memory baseURI = _baseURI();
+    string memory selfieURI = _baseURI();
 
-    return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
-
+    return bytes(selfieURI).length > 0 ? string(abi.encodePacked(selfieURI, tokenId.toString(), ".json")) : "";
     }
   }
 
 /////onlyOwner////
 
-  function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
-    notRevealedURI = initNotRevealedURI;
-  }
+  // function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
+  //   hiddenMessage = hiddenMessageURL;
+  // }
  
-    function setPaused(bool _state) public onlyOwner {
+    function setPaused(bool _state) external onlyOwner {
     _paused = _state;
   }
-   function setMerkleRoot(bytes32 _merkleRoot) public onlyOwner {
+   function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
     merkleRoot = _merkleRoot;
   }
-    function setWhitelistMintStarted(bool _state) public onlyOwner {
-    whitelistMintStarted = _state;
+    function setcatWalkStarted(bool _state) external onlyOwner {
+    catWalkStarted = _state;
   }
-
-   function setWhitelistMintEnded(bool _state) public onlyOwner {
-    whitelistMintEnded = _state;
+   function setcatWalkEnded(bool _state) external onlyOwner {
+    catWalkEnded = _state;
   }
-
-  function reveal () public onlyOwner(){
+  function reveal () external onlyOwner(){
     revealed = true;
   }
+  function champagneBeforeParty() external virtual onlyOwner {
+        require(!champagneFinished, "RESERVE MINT COMPLETED");
 
-  function mintForAddress(uint256 _mintAmount, address _receiver) public onlyOwner {
+        for (uint256 tokenId = 1; tokenId <= maxSupply; tokenId++) {
+            _safeMint(owner(), tokenId);
+        }
+       champagneFinished = true;
+    }
+
+  function mintForAddress(uint256 _mintAmount, address _receiver) external onlyOwner {
     tokenIds += _mintAmount;
     _safeMint(_receiver, _mintAmount);
   }
 
-  function withdraw() public payable onlyOwner {
-
+  function withdraw() external payable onlyOwner {
     (bool success, ) = payable(owner()).call{value: address(this).balance}('');
-    require(success);
-    // address _owner = owner();
-    // uint256 amount = address(this).balance;
-    //  (bool sent, ) =  _owner.call{value: amount}("");
-    // require(sent, "Failed to send Ether");
+    require(success, "SEND ETHER FAILED");
   }
 
   receive() external payable {}

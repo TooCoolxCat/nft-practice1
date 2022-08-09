@@ -2,11 +2,11 @@ const keccak256 = require("keccak256");
 const { MerkleTree } = require("merkletreejs");
 
 let whitelistAddresses = [
-    "0x48cE884A1ecead469c50b42370aF2983D59Bbb94", 
-    "0xd01B3098483Ada04e133C8A3B9912D4cBfFb8C7E",
+    "0x48cE884A1ecead469c50b42370aF2983D59Bbb94",
     "0xd38796bd8455c30632929B4384a0b5865aeBb9DB",
     "0x1734A28705322cBa314DBC63706267C95eAf94C6",
-    "0x813963b05bcE179693d5f867e30d8F38b8C6a6d0"
+    "0x813963b05bcE179693d5f867e30d8F38b8C6a6d0",
+    "0xA49a3aE63C366F41B78B282fc502FA3B12728b0D"
 ];
 
 // Create a new array of `leafNodes` by hashing all indexes of the `whitelistAddresses`
@@ -24,15 +24,15 @@ const rootHash = '0x' + merkleTree.getRoot().toString('hex');
 console.log("Root Hash: ", rootHash);
 
 
-//const claimingAddress = leafNodes[0];
+//const claimingAddress = leafNodes[2];
 
 //string -> buffer
 //const claimingAddress1 = keccak256("0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2");
 //console.log("address:",claimingAddress, typeof claimingAddress);
 
 //hex buffer
-//const hexProof1 = merkleTree.getHexProof(claimingAddress1);
-// console.log("proof1:",hexProof1);
+//const hexProof1 = merkleTree.getHexProof(claimingAddress);
+//console.log("proof1:",hexProof1);
 
 
 ////

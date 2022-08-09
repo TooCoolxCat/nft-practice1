@@ -3,11 +3,13 @@ require("dotenv").config({ path: ".env" });
 require("@nomiclabs/hardhat-etherscan");
 
 module.exports = {
-  solidity: "0.8.9",
-  settings: {
-    optimizer: {
-      enabled: true,
-      runs: 3333,
+  solidity: {
+    version : "0.8.9",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 3333,
+      },
     },
   },
   networks:{

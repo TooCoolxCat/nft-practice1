@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "pixelmix";
+  src: url('../fonts/pixelmix.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .app{
   min-height: 90vh;
   background-image: url(/ele/background.png);
@@ -18,7 +25,7 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  font-family: "Courier New", Courier, monospace;
+  font-family: "pixelmix","Courier New", Courier, monospace;
 }
 
 .footer {
@@ -28,12 +35,6 @@
   justify-content: center;
   align-items: center;
   color: #ffffff;
-}
-
-.description {
-  line-height: 1;
-  margin: 2rem 0;
-  font-size: 1.2rem;
 }
 
 .socialmediaBtn {
@@ -62,13 +63,28 @@
   text-align: center;
 }
 
+.description {
+  line-height: 1;
+  margin: 2rem 0;
+  font-size: 1.5rem;
+  color: #ffffff;
+  text-shadow: 2px 2px #000000;
+}
+
+.descriptionLarge {
+  line-height: 1;
+  margin: 3rem 0;
+  font-size: 3rem;
+  color: #ffffff;
+  text-shadow: 2px 2px #000000;
+}
+
 .screenContent{
   position: absolute;
   width:40%;
-  top: 40%;
+  top: 45%;
   left: 52%;
   transform: translate(-50%, -50%);
- 
 }
 
 .screenFrame {
@@ -85,7 +101,7 @@
 .buttonContainer{
   position:fixed;
   height: auto;
-  right:1%;
+  right:10%;
   bottom:10%;
   z-index:1;
   text-align: center;
@@ -93,7 +109,7 @@
 }
 
 .buttonImage{
-  width: 90%;
+  width: 55%;
 }
 
 .buttonText{
@@ -104,11 +120,87 @@
   font-size: 4rem;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 800px) {
+  .app{
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+  }
   .main {
     width: 100%;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+  }
+
+  .nav{
+    position:absolute;
+    left:auto;
+    top:32px;
+    margin-left:13px;
+  }
+
+
+  .socialmediaIMG {
+    width:auto;
+    height:40px;
+    padding-right:13px;
+  }
+
+  .title {
+    top: 100px;
+    width: 93%;
+    left:4%;
+  }
+
+  .screenContainer{
+    position: relative;
+    margin-top:25%;
+    width:160%;
+    left:-30%;
+    text-align: center;
+  }
+  .screenContent{
+    position: absolute;
+    width:40%;
+    top: 45%;
+    left: 52%;
+    transform: translate(-50%, -50%);
+  }
+
+  .description {
+    line-height: 1;
+    margin: 2rem 0;
+    font-size: 1rem;
+  }
+  
+  .descriptionLarge {
+    line-height: 1;
+    margin: 3rem 0;
+    font-size: 2rem;
+  }
+
+  .screenPop {
+    position:absolute;
+    top:24%;
+    right:-5%;
+    width: 30%;
+  }
+
+  .buttonContainer{
+    position:fixed;
+    height: auto;
+    right:0%;
+    bottom:12%;
+    z-index:1;
+
+  }
+  .buttonImage{
+    width: 50%;
+  }
+
+  .footer {
+    display: flex;
+    padding: 4rem 0;
   }
 }
