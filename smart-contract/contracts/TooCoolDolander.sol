@@ -27,27 +27,24 @@
 
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
+contract TooCoolDolander is ERC721A, Ownable, ReentrancyGuard{
     
     using Strings for uint256;
     
     bytes32 public merkleRoot;
-
     mapping(address => bool) public fashionlistClaimed;
 
     string selfie;
     string public hiddenMessage;
 
-    uint256 public cost = 0.0 ether; 
-    uint256 public tokenIds;
-    uint256 public immutable maxSupply = 3333; 
-    uint256 public immutable reserveSupply = 333;
+    uint256 public immutable maxBeauty = 3333; 
+    uint256 public maxTOOCOOLPerTx = 1;
 
     bool public _paused = false;
     bool public isValid = false;
@@ -59,7 +56,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
     constructor(
     string memory selfieURI,
     string memory hiddenMessageURL
-      ) ERC721("TooCoolDolander", "TOOCOOL") {
+      ) ERC721A("TooCoolDolander", "TOOCOOL") {
     selfie = selfieURI;
     hiddenMessage = hiddenMessageURL;
   }
@@ -81,31 +78,30 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
       _;
     }
 
+    modifier passBeautyCheck {
+      require(balanceOf(msg.sender) == 0, "ONE TOOCOOL PER WALLET");
+      require(totalSupply() + maxTOOCOOLPerTx < maxBeauty, "EXCEED MAX BEAUTY");
+      _;
+    }
+
   function fashionlistMint(bytes32[] calldata merkleProof)
         external
-        payable
         onlyWhenNotPaused
         nonReentrant
+        passBeautyCheck
         isValidMerkleProof(merkleProof, merkleRoot){
 
-        require(tokenIds < maxSupply, "EXCEED  SUPPLY");
-        require(catWalkStarted&&!catWalkEnded, 'NOT RIGHT TIME');
-        require(msg.value >= cost, "ETHER SENT NOT CORRECT");
-        require(balanceOf(msg.sender) == 0, 'ONE TOOCOOL PER WALLET');
-
+        require(catWalkStarted&&!catWalkEnded, "NOT RIGHT TIME");
         fashionlistClaimed[msg.sender] = true;
-        tokenIds += 1;
-        _safeMint(msg.sender, tokenIds);
+        _safeMint(msg.sender, 1);
   }
 
-  function beTooCool() external payable nonReentrant onlyWhenNotPaused {
-        require(tokenIds < maxSupply, "EXCEED  SUPPLY");
-        require(msg.value >= cost, "ETHER SENT NOT CORRECT");
-        require(balanceOf(msg.sender) == 0, 'ONE TOOCOOL PER WALLET');
-        require(catWalkEnded, 'NOT RIGHT TIME');
+  function beTooCool() external onlyWhenNotPaused nonReentrant passBeautyCheck{
+        require(catWalkEnded, "NOT RIGHT TIME");
+        require(balanceOf(msg.sender) == 0, "ONE TOOCOOL PER WALLET");
+        require(totalSupply() + maxTOOCOOLPerTx <= maxBeauty, "EXCEED MAX BEAUTY");
 
-        tokenIds += 1;
-        _safeMint(msg.sender, tokenIds);
+        _safeMint(msg.sender, 1);
   }
   
   function _baseURI() internal view virtual override returns (string memory) {
@@ -113,7 +109,7 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
   }
 
   function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-    require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+    require(_exists(tokenId), "NONEXISTENT TOOCOOL");
     if(revealed == false){
       return hiddenMessage;
     }
@@ -124,48 +120,50 @@ contract TooCoolDolander is ERC721Enumerable, Ownable, ReentrancyGuard{
     }
   }
 
-/////onlyOwner////
+  function _startTokenId() internal view virtual override returns (uint256) {
+    return 1;
+  }
 
-  // function setNotRevealedURI (string memory initNotRevealedURI) public onlyOwner{
-  //   hiddenMessage = hiddenMessageURL;
-  // }
- 
+//    ___       __             __          ____       __    
+//   / _ \___  / /__ ____  ___/ /__ ____  / __ \___  / /_ __
+//  / // / _ \/ / _ `/ _ \/ _  / -_) __/ / /_/ / _ \/ / // /
+// /____/\___/_/\_,_/_//_/\_,_/\__/_/    \____/_//_/_/\_, / 
+//                                                   /___/  
+
     function setPaused(bool _state) external onlyOwner {
     _paused = _state;
   }
-   function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
     merkleRoot = _merkleRoot;
   }
     function setcatWalkStarted(bool _state) external onlyOwner {
     catWalkStarted = _state;
   }
-   function setcatWalkEnded(bool _state) external onlyOwner {
+    function setcatWalkEnded(bool _state) external onlyOwner {
     catWalkEnded = _state;
   }
-  function reveal () external onlyOwner(){
+    function reveal () external onlyOwner(){
     revealed = true;
   }
-  function champagneBeforeParty() external onlyOwner {
+
+   function champagneBeforeParty(address Dolander, uint256 reserveBeauty) external onlyOwner {
         require(!champagneFinished, "RESERVE MINT COMPLETED");
 
-        for (uint256 tokenId = 1; tokenId <= maxSupply; tokenId++) {
-            _safeMint(owner(), tokenId);
-        }
-       champagneFinished = true;
+        uint256 totalToocool = totalSupply();
+	      require(totalToocool + reserveBeauty <= maxBeauty,"EXCEED MAX BEAUTY");
+        _safeMint(Dolander, reserveBeauty);
+
+        champagneFinished = true;
     }
 
-  function mintForAddress(uint256 _mintAmount, address _receiver) external onlyOwner {
-    tokenIds += _mintAmount;
-    _safeMint(_receiver, _mintAmount);
+  function toocoolTreats(address _lover, uint256 _kiss) external onlyOwner {
+    require(totalSupply() + _kiss < maxBeauty, "EXCEED MAX BEAUTY");
+    _safeMint(_lover, _kiss);
   }
 
   function withdraw() external payable onlyOwner {
     (bool success, ) = payable(owner()).call{value: address(this).balance}('');
     require(success, "SEND ETHER FAILED");
   }
-
-  receive() external payable {}
-
-  fallback() external payable {}
 
 }

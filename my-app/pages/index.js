@@ -22,8 +22,8 @@
       //const web3ModalRef = useRef();
 
       const [presaleStarted, setPresaleStarted] = useState(false);
-      // presaleEnded keeps track of whether the presale ended
       const [presaleEnded, setPresaleEnded] = useState(false);
+      const [soldOut, setSoldOut] = useState(false);
 
       const [merkleTree, setMerkleTree] = useState(null);
       const [rootHash, setrootHash] = useState(null);
@@ -32,6 +32,7 @@
       const [isValid, setisValid] = useState(false);
       const [isClaimed, setisClaimed] = useState(false);
 
+      const [transactionHash, setTransactionHash] = useState("");
       const [tokenAddress, setTokenAddress] = useState("");
       
       const checkIfPresaleStarted = async () => {
@@ -165,11 +166,14 @@
           await tx.wait();
           setLoading(false);
 
-          const tokenAddress = await nftContract.tokenURI();
+          const transactionHash = tx.hash;
+          setTransactionHash(transactionHash);
+          const tokenAddress = "https://rinkeby.etherscan.io/tx/" + transactionHash;
           setTokenAddress(tokenAddress);
 
-          window.alert("You successfully minted a TooCool Dolander!");
-          return tokenAddress;
+         
+         window.alert("OMG! ⋆｡ﾟ☁︎｡⋆｡ ﾟ☾ ﾟ｡⋆ You are TooCool!");
+         return tokenAddress;
 
         } catch (err) {
           console.error(err);
@@ -194,14 +198,16 @@
             value: utils.parseEther("0.0"),
           });
           setLoading(true);
-          // wait for the transaction to get mined
           await tx.wait();
           setLoading(false);
 
-          const tokenAddress = await nftContract.tokenURI();
+          const transactionHash = tx.hash;
+          setTransactionHash(transactionHash);
+          const tokenAddress = "https://rinkeby.etherscan.io/tx/" + transactionHash;
           setTokenAddress(tokenAddress);
 
-          window.alert("You successfully minted a TooCool Dolander!");
+          
+          window.alert("OMG! ⋆｡ﾟ☁︎｡⋆｡ ﾟ☾ ﾟ｡⋆ You are TooCool!");
           return tokenAddress;
 
         } catch (err) {
@@ -236,14 +242,37 @@
           // have read-only access to the Contract
           const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
           // call the tokenIds from the contract
-          const _tokenIds = await nftContract.tokenIds();
+          const _tokenIds = await nftContract.totalSupply();
+        
           //_tokenIds is a `Big Number`. We need to convert the Big Number to a string
           setTokenIdsMinted(_tokenIds.toString());
+
+          if (transactionHash == 0){
+            const tokenAddress = "https://opensea.io/collection/toocooldolander";
+            setTokenAddress(tokenAddress);
+            //console.log(tokenAddress);
+          }
         } catch (err) {
           console.error(err);
         }
       };
 
+      const checkifSoldOut = async () => {
+        try {
+          const provider = await getProviderOrSigner();
+          const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+          const _tokenIds = await nftContract.totalSupply();
+
+          if(_tokenIds.toString() == '3333'){
+            soldOut = true;
+          }
+          setSoldOut(soldOut);
+          return soldOut;
+
+        } catch (err) {
+          console.error(err);
+        }
+      };
       
       /**
        * Returns a Provider or Signer object representing the Ethereum RPC with or without the
@@ -287,6 +316,7 @@
         return web3Provider;
       };
 
+
       // useEffects are used to react to changes in state of the website
       // The array at the end of function call represents what state changes will trigger this effect
       // In this case, whenever the value of `walletConnected` changes - this effect will be called
@@ -295,9 +325,7 @@
         
           // Assign the Web3Modal class to the reference object by setting it's `current` value
           // The `current` value is persisted throughout as long as this page is open
-
           if (walletConnected) {
-          setLoading(true);
           checkifClaimed();
           checkifValid();
         
@@ -309,13 +337,26 @@
           }
       
           getTokenIdsMinted();
+          checkifSoldOut();
 
-          setLoading(false);
-    
-          // set an interval to get the number of token Ids minted every 5 seconds
+         // set an interval to get the number of token Ids minted every 5 seconds
           setInterval(async function () {
             await getTokenIdsMinted();
-          }, 5 * 1000);
+            await checkifClaimed();
+            await checkifSoldOut();
+          }, 3 * 1000);
+        }
+
+        else{
+           getTokenIdsMinted();
+           checkifSoldOut();
+
+            // set an interval to get the number of token Ids minted every 5 seconds
+            setInterval(async function () {
+              await getTokenIdsMinted();
+              await checkifClaimed();
+              await checkifSoldOut();
+            }, 5 * 1000);
         }
       }, [walletConnected]);
 
@@ -323,11 +364,8 @@
         renderScreen: Returns the computer image
       */
       const renderScreen = () =>{
-        if (loading) {
-          return <img className = {styles.screenFrame}  src="./ele/frontImage1.png"  alt="cool computer" />
-        }
         if (!walletConnected) {
-          return <img className = {styles.screenFrame}  src="./ele/frontImage.gif"  alt="cool computer" />
+          return <img className = {styles.screenFrame}  src="./ele/frontImage1.png"  alt="cool computer" />
         }
 
         if (!presaleStarted && !presaleEnded) {
@@ -349,9 +387,42 @@
        // If wallet is not connected, return a button which allows them to connect their wallet
        if (!walletConnected) {
         return (
-          <div></div>
+          <div>
+            <div className={styles.descriptionLarge}>
+               3333 <br></br><br></br>TOOCOOL
+            </div>
+            <div className={styles.description}>
+               FREE MINT PARTY
+            </div>
+
+          </div>
         );
     }
+
+   if(!walletConnected && soldOut){
+    return (
+      <div>
+        <div className={styles.descriptionLarge}>
+          3333 SOLD OUT!
+        </div>
+         <div className={styles.description}>
+           Get your TooCool 
+           @ marketplace 🥳
+         </div>
+     </div>
+    );
+   }
+
+          // If we are currently waiting for something, return a loading button
+          if (loading) {
+            return (
+              <div>
+                  <div className={styles.descriptionLarge}>
+                  ✨Minting... 
+                  </div>  
+              </div>
+              );
+          }
 
        // if presale started = true, ended = false, if valid then presale mint
       if (presaleStarted && !presaleEnded && isValid && !isClaimed) {
@@ -399,7 +470,7 @@
               have been minted
             </div>
             <div className={styles.description}>
-              Bling Bling Time! <br></br>Mint a TooCool Dolander 🥳
+            🥳 Bling Bling Time! <br></br>Mint a TooCool Dolander 
             </div>  
         </div>
         );
@@ -423,12 +494,8 @@
         );
    }   
    
-      // If we are currently waiting for something, return a loading button
-      if (loading) {
-        return <button className={styles.buttonContainer}>Loading...</button>;
-      }
 
-     }
+}
 
       const renderButton = () => {
         //connect wallet
@@ -439,6 +506,14 @@
           </div>
           );
         }
+        if (loading) {
+          return (
+            <div className={styles.buttonContainer}>
+              <img className={styles.buttonImage} src="./ele/btn-loading.gif"  alt=" Button" />
+            </div>
+           );
+        }
+
         //presale start
         if (presaleStarted && !presaleEnded && isValid && !isClaimed) {
           return (
@@ -465,22 +540,17 @@
           );
         }  
 
-
          //If token has already be minted
          if (isClaimed) {
           return (
-            <div className={styles.buttonContainer}>
-              <img className={styles.buttonImage} src="./ele/btn-viewnft.gif"  alt=" Button" />
+            <div className={styles.buttonContainer}>    
+                <a href={tokenAddress}  target="_blank" rel="noreferrer">
+                  <img className={styles.buttonImage} src="./ele/btn-viewnft.gif"  alt=" Button" />     
+                 </a>
             </div>
           );
        }   
-        if (loading) {
-          return (
-            <div className={styles.buttonContainer}>
-              <img className={styles.buttonImage} src="./ele/btn-loading.gif"  alt=" Button" />
-            </div>
-           );
-        }
+
         //Default state: Join fashion list
         return (
           <div className={styles.buttonContainer}>
@@ -498,7 +568,7 @@
           </Head>
           <div className = {styles.nav}>
               <button className = {styles.socialmediaBtn} type="button"> 
-                  <a href="https://opensea.io/"  target="_blank" rel="noreferrer">
+                  <a href="https://opensea.io/collection/toocooldolander"  target="_blank" rel="noreferrer">
                     <img className = {styles.socialmediaIMG} src="./ele/btn-opensea.png" alt="opensea-logo" />
                   </a>  </button>
               
